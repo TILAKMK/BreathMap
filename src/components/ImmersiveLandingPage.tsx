@@ -61,33 +61,64 @@ export default function ImmersiveLandingPage() {
         <CinematicHeroV2 />
       </section>
 
-      {/* Section 2: Fullscreen Live Map & Command Center */}
-      <section className="relative w-full h-screen overflow-hidden">
-        <FullscreenLiveMap />
+      {/* Section 2: Fullscreen Command Center */}
+      <section className="relative w-full h-screen overflow-hidden flex flex-col">
+        {/* Top Header Strip (Minimal) */}
+        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/80 to-transparent z-40 flex items-center justify-between px-8 pointer-events-none">
+          <div className="flex items-center gap-4">
+             <div className="w-10 h-[1px] bg-cyan-500/50" />
+             <span className="text-[10px] text-cyan-400/60 tracking-[0.4em] uppercase font-bold">Atmospheric Node 01</span>
+          </div>
+          <div className="flex items-center gap-6">
+             <div className="flex flex-col items-end">
+                <span className="text-[10px] text-white/40 tracking-widest uppercase">System Status</span>
+                <span className="text-[10px] text-cyan-400 uppercase font-bold">Synchronized</span>
+             </div>
+             <div className="w-10 h-[1px] bg-cyan-500/50" />
+          </div>
+        </div>
 
-        {/* HUD Overlay System */}
-        <div className="absolute inset-0 pointer-events-none z-30">
-          {/* Left HUD: Environmental Stats */}
-          <div className="absolute left-8 top-1/2 -translate-y-1/2 pointer-events-auto">
+        {/* Central Map - Dominant */}
+        <div className="absolute inset-0 z-10">
+          <FullscreenLiveMap />
+        </div>
+
+        {/* HUD Frame Overlay */}
+        <div className="absolute inset-0 z-30 pointer-events-none flex">
+          {/* Left Sidebar: Data Rich Environmental Stats */}
+          <div className="w-80 h-full bg-gradient-to-r from-black/60 via-black/20 to-transparent backdrop-blur-[2px] p-8 flex flex-col gap-6 pointer-events-auto border-r border-white/5">
             <FloatingAnalyticsOverlay />
           </div>
 
-          {/* Right HUD: AI Scan */}
-          <div className="absolute right-8 top-1/2 -translate-y-1/2 pointer-events-auto">
-            <AIScanMode />
+          {/* Center Space for Map Interactivity */}
+          <div className="flex-1 relative">
+             {/* Sound Waveform - Floating in center bottom */}
+             <div className="absolute bottom-32 left-1/2 -translate-x-1/2 pointer-events-auto">
+                <LiveSoundWaveform />
+             </div>
           </div>
 
-          {/* Bottom HUD: Timeline & Sound */}
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-[90%] pointer-events-auto">
-            <div className="flex flex-col gap-4 items-center">
-              <LiveSoundWaveform />
-              <PredictionTimeline />
+          {/* Right Sidebar: AI, Radar & Alerts */}
+          <div className="w-80 h-full bg-gradient-to-l from-black/60 via-black/20 to-transparent backdrop-blur-[2px] p-8 flex flex-col gap-8 items-end pointer-events-auto border-l border-white/5">
+            <AIScanMode />
+            <RadarScan />
+            {/* Added Alert System Placeholder */}
+            <div className="w-full mt-auto">
+               <div className="flex items-center justify-end gap-2 mb-2">
+                 <span className="text-[10px] text-red-500/60 font-bold tracking-[0.2em] uppercase">Alert Matrix</span>
+                 <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+               </div>
+               <div className="bg-red-500/5 border border-red-500/20 p-3 rounded-sm">
+                 <p className="text-[9px] text-red-400 uppercase leading-relaxed">No critical atmospheric anomalies detected in current sector.</p>
+               </div>
             </div>
           </div>
+        </div>
 
-          {/* Map Feature HUD: Radar */}
-          <div className="absolute top-8 left-1/2 -translate-x-1/2 pointer-events-auto">
-            <RadarScan />
+        {/* Bottom Panel: Timeline & Predictions */}
+        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-40 pointer-events-auto border-t border-white/5 flex flex-col justify-end">
+          <div className="px-8 pb-4">
+             <PredictionTimeline />
           </div>
         </div>
       </section>
