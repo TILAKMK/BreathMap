@@ -47,13 +47,13 @@ export function FullscreenLiveMap() {
           const el = document.createElement('div');
           el.className = 'location-marker';
           el.style.cssText = `
-            width: 40px;
-            height: 40px;
-            background: radial-gradient(circle, #00F5D4 0%, rgba(0, 245, 212, 0.3) 100%);
-            border: 3px solid #00F5D4;
+            width: 32px;
+            height: 32px;
+            background: radial-gradient(circle, #22d3ee 0%, rgba(34, 211, 238, 0.2) 100%);
+            border: 2px solid #22d3ee;
             border-radius: 50%;
-            box-shadow: 0 0 20px #00F5D4, inset 0 0 10px rgba(0, 245, 212, 0.5);
-            animation: pulse 2s infinite;
+            box-shadow: 0 0 15px rgba(34, 211, 238, 0.5), inset 0 0 5px rgba(34, 211, 238, 0.5);
+            animation: pulse 3s infinite;
           `;
 
           new mapboxgl.Marker(el)
@@ -157,7 +157,7 @@ export function FullscreenLiveMap() {
         }}
         style={{
           borderRadius: '50%',
-          border: '2px solid #00F5D4',
+          border: '1px solid rgba(34, 211, 238, 0.3)',
           width: '200px',
           height: '200px',
           left: location ? `calc(50% + ${location.longitude}px)` : '50%',

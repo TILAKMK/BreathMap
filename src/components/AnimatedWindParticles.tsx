@@ -64,9 +64,9 @@ export function AnimatedWindParticles() {
         p.life -= 0.02;
 
         // Draw particle
-        ctx.fillStyle = `rgba(0, 245, 212, ${(p.life / p.maxLife) * 0.6})`;
-        ctx.shadowColor = '#00F5D4';
-        ctx.shadowBlur = 5;
+        ctx.fillStyle = `rgba(34, 211, 238, ${(p.life / p.maxLife) * 0.3})`;
+        ctx.shadowColor = '#22d3ee';
+        ctx.shadowBlur = 2;
 
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * (p.life / p.maxLife), 0, Math.PI * 2);

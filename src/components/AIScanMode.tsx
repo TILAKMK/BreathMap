@@ -25,134 +25,80 @@ export function AIScanMode() {
   };
 
   return (
-    <div className="fixed top-8 right-8 z-40">
-      <motion.div
-        className="bg-black/40 backdrop-blur-lg rounded-2xl p-6 border border-[#00F5D4]/30 w-80"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        {/* Header */}
-        <div className="mb-6">
-          <h3 className="text-white font-semibold mb-1">AI Environmental Scan</h3>
-          <p className="text-[#94A3B8] text-sm">Advanced atmospheric analysis</p>
-        </div>
+    <motion.div
+      className="w-64 flex flex-col gap-2"
+      initial={{ x: 50, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.8 }}
+    >
+      {/* HUD Header */}
+      <div className="flex items-center justify-end gap-2 mb-2 px-2">
+        <span className="text-[10px] text-cyan-500/60 font-bold tracking-[0.2em] uppercase">AI Neural Core</span>
+        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+      </div>
 
+      <div className="bg-black/40 backdrop-blur-md border border-white/5 p-4 relative overflow-hidden group">
+        {/* Holographic Glow */}
+        <div className="absolute inset-0 bg-cyan-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+        
         {/* Scan Visualization */}
-        <div className="relative h-32 bg-gradient-to-b from-[#0a0e27] to-[#050816] rounded-xl mb-6 overflow-hidden border border-[#00F5D4]/20">
-          {/* Grid background */}
+        <div className="relative h-24 bg-black/40 border border-cyan-500/20 mb-4 overflow-hidden">
+          {/* Grid */}
           <div className="absolute inset-0 opacity-10">
-            {[...Array(6)].map((_, i) => (
-              <div key={`h-${i}`} className="border-b border-[#00F5D4]" style={{ height: '20%' }} />
-            ))}
-            {[...Array(6)].map((_, i) => (
-              <div key={`v-${i}`} className="absolute border-l border-[#00F5D4]" style={{ width: '20%', height: '100%' }} />
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="absolute inset-0 border-b border-cyan-500" style={{ top: `${(i+1)*25}%` }} />
             ))}
           </div>
 
-          {/* Scanning line */}
+          {/* Scanning Line */}
           {isScanning && (
             <motion.div
-              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-[#00F5D4] to-transparent"
-              animate={{
-                top: ['0%', '100%'],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: 'easeInOut',
-              }}
+              className="absolute left-0 right-0 h-[2px] bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.8)] z-10"
+              animate={{ top: ['0%', '100%'] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
             />
           )}
 
-          {/* Center indicator */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <motion.div
-              className="w-2 h-2 bg-[#00F5D4] rounded-full"
-              animate={{
-                scale: [1, 1.5, 1],
-                opacity: [0.5, 1, 0.5],
-              }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-              }}
+          {/* Holographic Content */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <motion.div 
+              className="w-12 h-12 border border-cyan-500/30 rounded-full"
+              animate={{ rotate: 360, scale: [1, 1.1, 1] }}
+              transition={{ duration: 10, repeat: Infinity, ease: 'linear' }}
             />
+            <div className="absolute text-[8px] text-cyan-500/40 uppercase tracking-tighter">Atmosphere.Scan</div>
           </div>
-
-          {/* Scan points */}
-          {isScanning && (
-            <>
-              {[...Array(5)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute w-1.5 h-1.5 bg-[#00F5D4] rounded-full"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `${scanProgress + Math.random() * 20}%`,
-                  }}
-                  animate={{
-                    opacity: [1, 0],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    delay: i * 0.4,
-                  }}
-                />
-              ))}
-            </>
-          )}
         </div>
 
-        {/* Progress bar */}
-        <div className="mb-6">
-          <div className="flex justify-between text-xs mb-2">
-            <span className="text-[#94A3B8]">Scan Progress</span>
-            <span className="text-[#00F5D4] font-semibold">{scanProgress}%</span>
+        {/* Progress Bar */}
+        <div className="space-y-1 mb-4">
+          <div className="flex justify-between text-[8px] uppercase tracking-widest text-slate-500">
+            <span>Neural Sync</span>
+            <span className="text-cyan-400">{scanProgress}%</span>
           </div>
-          <div className="h-2 bg-black/50 rounded-full overflow-hidden border border-[#00F5D4]/20">
-            <motion.div
-              className="h-full bg-gradient-to-r from-[#00F5D4] to-[#00FFD4]"
-              animate={{
-                width: `${scanProgress}%`,
-              }}
-              transition={{ duration: 0.2 }}
+          <div className="h-[2px] bg-white/5 w-full">
+            <motion.div 
+              className="h-full bg-cyan-500"
+              animate={{ width: `${scanProgress}%` }}
             />
           </div>
         </div>
 
-        {/* Metrics Grid */}
-        <div className="grid grid-cols-2 gap-3 mb-6 text-xs">
-          <div className="bg-[#00F5D4]/10 rounded-lg p-3 border border-[#00F5D4]/20">
-            <p className="text-[#94A3B8] mb-1">Pollutants</p>
-            <p className="text-[#00F5D4] font-semibold">4 types</p>
-          </div>
-          <div className="bg-[#00F5D4]/10 rounded-lg p-3 border border-[#00F5D4]/20">
-            <p className="text-[#94A3B8] mb-1">Zones</p>
-            <p className="text-[#00F5D4] font-semibold">3 areas</p>
-          </div>
-          <div className="bg-[#00F5D4]/10 rounded-lg p-3 border border-[#00F5D4]/20">
-            <p className="text-[#94A3B8] mb-1">Coverage</p>
-            <p className="text-[#00F5D4] font-semibold">5 km²</p>
-          </div>
-          <div className="bg-[#00F5D4]/10 rounded-lg p-3 border border-[#00F5D4]/20">
-            <p className="text-[#94A3B8] mb-1">Status</p>
-            <p className="text-[#00F5D4] font-semibold">Live</p>
-          </div>
-        </div>
-
-        {/* Scan Button */}
-        <motion.button
+        {/* Action */}
+        <button
           onClick={handleScan}
           disabled={isScanning}
-          className="w-full py-3 bg-gradient-to-r from-[#00F5D4] to-[#00FFD4] text-black font-semibold rounded-xl disabled:opacity-50 disabled:cursor-not-allowed"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          className="w-full py-2 bg-cyan-500/10 border border-cyan-500/30 text-[10px] text-cyan-400 font-bold uppercase tracking-[0.2em] hover:bg-cyan-500/20 transition-all disabled:opacity-30"
         >
-          {isScanning ? 'Scanning...' : 'Start AI Scan'}
-        </motion.button>
-      </motion.div>
-    </div>
+          {isScanning ? 'Syncing...' : 'Initiate Scan'}
+        </button>
+      </div>
+
+      {/* Subtle status */}
+      <div className="flex justify-between px-2 mt-1">
+        <span className="text-[7px] text-slate-700 uppercase tracking-widest">Core: Stable</span>
+        <span className="text-[7px] text-slate-700 uppercase tracking-widest">Auth: Root</span>
+      </div>
+    </motion.div>
   );
 }

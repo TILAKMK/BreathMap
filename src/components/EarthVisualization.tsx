@@ -45,20 +45,20 @@ export function EarthVisualization() {
 
     // Draw gradient Earth
     const gradient = ctx.createLinearGradient(0, 0, 0, 1024);
-    gradient.addColorStop(0, '#1a3a52');
-    gradient.addColorStop(0.5, '#2d5a7a');
-    gradient.addColorStop(1, '#1a3a52');
+    gradient.addColorStop(0, '#050816');
+    gradient.addColorStop(0.5, '#0a0e27');
+    gradient.addColorStop(1, '#050816');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 2048, 1024);
 
     // Add some random landmass noise
-    for (let i = 0; i < 1000; i++) {
-      ctx.fillStyle = `rgba(50, 150, 50, ${Math.random() * 0.3})`;
+    for (let i = 0; i < 1500; i++) {
+      ctx.fillStyle = `rgba(34, 211, 238, ${Math.random() * 0.05})`;
       ctx.beginPath();
       ctx.arc(
         Math.random() * 2048,
         Math.random() * 1024,
-        Math.random() * 50 + 10,
+        Math.random() * 80 + 20,
         0,
         Math.PI * 2
       );
@@ -66,16 +66,20 @@ export function EarthVisualization() {
     }
 
     const texture = new THREE.CanvasTexture(canvas);
-    const material = new THREE.MeshPhongMaterial({ map: texture });
+    const material = new THREE.MeshPhongMaterial({ 
+      map: texture,
+      shininess: 5,
+      specular: new THREE.Color(0x22d3ee),
+    });
     const earth = new THREE.Mesh(geometry, material);
     scene.add(earth);
 
     // Add atmospheric glow
     const glowGeometry = new THREE.SphereGeometry(1.05, 64, 64);
     const glowMaterial = new THREE.MeshBasicMaterial({
-      color: 0x00ff41,
+      color: 0x22d3ee,
       transparent: true,
-      opacity: 0.1
+      opacity: 0.05
     });
     const glow = new THREE.Mesh(glowGeometry, glowMaterial);
     scene.add(glow);

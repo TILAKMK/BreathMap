@@ -4,58 +4,31 @@ import { motion } from 'framer-motion';
 
 export function RadarScan() {
   return (
-    <div className="fixed bottom-8 right-8 z-40">
-      {/* Outer container */}
-      <div className="relative w-40 h-40">
-        {/* Radar background */}
-        <div className="absolute inset-0 rounded-full border-2 border-[#00F5D4]/30 bg-black/40 backdrop-blur-sm">
-          {/* Radar grid circles */}
-          <div className="absolute inset-0 rounded-full border border-[#00F5D4]/20" style={{ scale: 0.75 }} />
-          <div className="absolute inset-0 rounded-full border border-[#00F5D4]/10" style={{ scale: 0.5 }} />
-          <div className="absolute inset-0 rounded-full border border-[#00F5D4]/5" style={{ scale: 0.25 }} />
+    <div className="relative w-32 h-32 flex items-center justify-center">
+      {/* Outer Glow */}
+      <div className="absolute inset-0 bg-cyan-500/5 rounded-full blur-xl" />
+      
+      {/* Radar Circles */}
+      <div className="absolute inset-0 border border-cyan-500/10 rounded-full" />
+      <div className="absolute inset-4 border border-cyan-500/10 rounded-full" />
+      <div className="absolute inset-8 border border-cyan-500/10 rounded-full" />
+      
+      {/* Rotating Beam */}
+      <motion.div
+        className="absolute inset-0"
+        animate={{ rotate: 360 }}
+        transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+      >
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-1/2 bg-gradient-to-t from-transparent via-cyan-500/50 to-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-16 h-1/2 bg-cyan-500/5 origin-bottom -rotate-12 blur-sm" />
+      </motion.div>
 
-          {/* Center dot */}
-          <div className="absolute top-1/2 left-1/2 w-3 h-3 bg-[#00F5D4] rounded-full transform -translate-x-1/2 -translate-y-1/2 shadow-lg shadow-[#00F5D4]" />
+      {/* Center Point */}
+      <div className="w-1 h-1 bg-cyan-400 rounded-full shadow-[0_0_10px_rgba(34,211,238,1)] z-10" />
 
-          {/* Scanning lines */}
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-            style={{
-              background: `conic-gradient(from 0deg, rgba(0, 245, 212, 0.8), rgba(0, 245, 212, 0.2), transparent)`,
-            }}
-          />
-
-          {/* Animated ping dots */}
-          {[0, 120, 240].map((angle, i) => (
-            <motion.div
-              key={i}
-              className="absolute w-2 h-2 bg-[#00F5D4] rounded-full"
-              style={{
-                left: '50%',
-                top: '50%',
-                transformOrigin: `0 -50px`,
-              }}
-              animate={{
-                rotate: 360,
-                opacity: [1, 0],
-              }}
-              transition={{
-                duration: 3,
-                repeat: Infinity,
-                ease: 'easeOut',
-                delay: i * 1,
-              }}
-              initial={{ rotate: angle, x: -2, y: -50, opacity: 1 }}
-            />
-          ))}
-        </div>
-
-        {/* Label */}
-        <div className="absolute -bottom-8 left-0 right-0 text-center">
-          <p className="text-xs text-[#00F5D4] font-semibold">LIVE SCAN</p>
-        </div>
+      {/* Label */}
+      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-center w-full">
+        <span className="text-[8px] text-cyan-500/30 font-bold tracking-[0.3em] uppercase whitespace-nowrap">Tracking Active</span>
       </div>
     </div>
   );

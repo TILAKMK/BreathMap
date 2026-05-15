@@ -1,142 +1,151 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { EarthVisualization } from './EarthVisualization';
 
 export function CinematicHeroV2() {
   return (
-    <div className="relative w-full min-h-screen bg-gradient-to-br from-[#0a0e27] via-[#050816] to-[#0a0e27] overflow-hidden flex items-center justify-center">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        {/* Animated orbs */}
+    <div className="relative w-full min-h-screen bg-[#050816] overflow-hidden flex items-center justify-center">
+      {/* Background Depth */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(10,14,39,1)_0%,rgba(5,8,22,1)_100%)]" />
+        
+        {/* Subtle Ambient Glows */}
         <motion.div
-          className="absolute w-96 h-96 rounded-full blur-3xl"
-          style={{
-            background: 'radial-gradient(circle, rgba(0, 245, 212, 0.15), transparent)',
-            left: '10%',
-            top: '20%',
-          }}
+          className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-cyan-900/10 rounded-full blur-[120px]"
           animate={{
-            x: [0, 100, 0],
-            y: [0, -100, 0],
+            opacity: [0.3, 0.5, 0.3],
+            scale: [1, 1.1, 1],
           }}
-          transition={{
-            duration: 20,
-            repeat: Infinity,
-            ease: 'easeInOut',
-          }}
+          transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
         />
         <motion.div
-          className="absolute w-72 h-72 rounded-full blur-3xl"
-          style={{
-            background: 'radial-gradient(circle, rgba(0, 255, 212, 0.1), transparent)',
-            right: '15%',
-            bottom: '20%',
-          }}
+          className="absolute bottom-1/4 -right-20 w-[500px] h-[500px] bg-emerald-900/5 rounded-full blur-[120px]"
           animate={{
-            x: [0, -80, 0],
-            y: [0, 80, 0],
+            opacity: [0.2, 0.4, 0.2],
+            scale: [1, 1.2, 1],
           }}
-          transition={{
-            duration: 25,
-            repeat: Infinity,
-            ease: 'easeInOut',
-            delay: 2,
-          }}
+          transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }}
         />
+      </div>
+
+      {/* Subtle 3D Earth - Positioned behind text but clearly visible */}
+      <div className="absolute inset-0 z-10 flex items-center justify-center opacity-40 mix-blend-screen pointer-events-none">
+        <div className="w-full max-w-4xl h-[600px]">
+          <EarthVisualization />
+        </div>
       </div>
 
       {/* Content */}
       <motion.div
-        className="relative z-10 text-center px-4 max-w-5xl"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1 }}
+        className="relative z-20 text-center px-4 max-w-5xl"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.5 }}
       >
-        {/* Badge */}
-        <motion.div
-          className="inline-block mb-8 px-4 py-2 rounded-full bg-[#00F5D4]/10 border border-[#00F5D4]/50 backdrop-blur-sm"
-          animate={{
-            boxShadow: ['0 0 20px rgba(0, 245, 212, 0.3)', '0 0 40px rgba(0, 245, 212, 0.6)', '0 0 20px rgba(0, 245, 212, 0.3)'],
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-          }}
+        {/* Top HUD Line */}
+        <motion.div 
+          className="flex items-center justify-center gap-4 mb-12"
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.8 }}
         >
-          <span className="text-[#00F5D4] text-sm font-semibold">🌍 LIVE ENVIRONMENTAL INTELLIGENCE</span>
+          <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-cyan-500/50" />
+          <span className="text-cyan-400/60 text-[10px] tracking-[0.4em] font-medium uppercase">
+            System Initialization v4.0
+          </span>
+          <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-cyan-500/50" />
         </motion.div>
 
         {/* Main heading */}
-        <motion.h1
-          className="text-6xl md:text-7xl font-bold mb-6 leading-tight"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 1 }}
-        >
-          <span className="bg-gradient-to-r from-white via-white to-[#00F5D4] bg-clip-text text-transparent">
-            The Atmosphere
-          </span>
-          <br />
-          <span className="bg-gradient-to-r from-[#00F5D4] to-white bg-clip-text text-transparent">
-            Comes Alive
-          </span>
-        </motion.h1>
+        <div className="mb-8 relative">
+          <motion.h1
+            className="text-7xl md:text-8xl font-bold tracking-tighter"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.7, duration: 0.8 }}
+          >
+            <span className="text-white drop-shadow-[0_0_30px_rgba(255,255,255,0.2)]">BREATH</span>
+            <span className="text-cyan-400 drop-shadow-[0_0_20px_rgba(0,245,212,0.3)]">MAP</span>
+          </motion.h1>
+          <motion.div 
+            className="absolute -bottom-4 left-1/2 -translate-x-1/2 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent"
+            initial={{ width: 0 }}
+            animate={{ width: '80%' }}
+            transition={{ delay: 1.2, duration: 1.5 }}
+          />
+        </div>
 
         {/* Subtitle */}
         <motion.p
-          className="text-xl text-[#94A3B8] mb-12 max-w-2xl mx-auto"
+          className="text-lg text-slate-400 font-light tracking-wide max-w-2xl mx-auto mb-16 leading-relaxed"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 1 }}
+          transition={{ delay: 1, duration: 1 }}
         >
-          Real-time environmental intelligence system. Watch the air quality, weather, pollution, and wind patterns unfold before your eyes.
+          Advanced Environmental Command & Control. 
+          Real-time atmospheric intelligence through holographic data visualization.
         </motion.p>
 
-        {/* CTA Buttons */}
+        {/* Premium CTA */}
         <motion.div
-          className="flex flex-col sm:flex-row gap-4 justify-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6, duration: 1 }}
+          className="flex flex-col sm:flex-row gap-6 justify-center items-center"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 1.3, duration: 0.8 }}
         >
           <motion.button
-            className="px-8 py-4 bg-gradient-to-r from-[#00F5D4] to-[#00FFD4] text-black font-bold rounded-xl text-lg"
-            whileHover={{
-              scale: 1.05,
-              boxShadow: '0 0 30px rgba(0, 245, 212, 0.6)',
-            }}
-            whileTap={{ scale: 0.95 }}
+            className="group relative px-10 py-4 overflow-hidden rounded-sm"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
           >
-            Start Monitoring Now
-          </motion.button>
-
-          <motion.button
-            className="px-8 py-4 bg-transparent border-2 border-[#00F5D4] text-[#00F5D4] font-bold rounded-xl text-lg hover:bg-[#00F5D4]/10"
-            whileHover={{
-              scale: 1.05,
-            }}
-            whileTap={{ scale: 0.95 }}
-          >
-            View Live Map
+            <div className="absolute inset-0 bg-cyan-500/10 border border-cyan-500/30 group-hover:bg-cyan-500/20 transition-all duration-300" />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+            </div>
+            <span className="relative text-cyan-400 font-bold tracking-widest text-sm uppercase">
+              Enter Command Center
+            </span>
           </motion.button>
         </motion.div>
       </motion.div>
 
+      {/* Bottom HUD Elements */}
+      <motion.div 
+        className="absolute bottom-12 left-12 flex flex-col gap-2"
+        initial={{ x: -20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 1.5, duration: 1 }}
+      >
+        <div className="text-[10px] text-cyan-500/40 tracking-widest uppercase">Global Node Alpha-7</div>
+        <div className="text-[10px] text-slate-500 tracking-widest uppercase">Scanning Frequency: 4.2 GHz</div>
+      </motion.div>
+
+      <motion.div 
+        className="absolute bottom-12 right-12 text-right flex flex-col gap-2"
+        initial={{ x: 20, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ delay: 1.5, duration: 1 }}
+      >
+        <div className="text-[10px] text-cyan-500/40 tracking-widest uppercase">Telemetry Active</div>
+        <div className="text-[10px] text-slate-500 tracking-widest uppercase">Live Data Stream: Verified</div>
+      </motion.div>
+
       {/* Scroll indicator */}
       <motion.div
-        className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20"
+        className="absolute bottom-6 left-1/2 transform -translate-x-1/2 z-20 flex flex-col items-center gap-2"
         animate={{
-          y: [0, 10, 0],
+          y: [0, 8, 0],
+          opacity: [0.4, 0.8, 0.4]
         }}
         transition={{
-          duration: 2,
+          duration: 3,
           repeat: Infinity,
         }}
       >
-        <div className="text-[#00F5D4] text-center">
-          <p className="text-sm mb-2">Scroll to explore</p>
-          <div className="text-2xl">↓</div>
-        </div>
+        <div className="w-[1px] h-12 bg-gradient-to-b from-cyan-500/0 via-cyan-500/50 to-cyan-500/0" />
+        <span className="text-[10px] text-cyan-500/50 tracking-[0.3em] uppercase">Scroll</span>
       </motion.div>
     </div>
   );

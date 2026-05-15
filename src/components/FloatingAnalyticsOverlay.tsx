@@ -4,146 +4,69 @@ import { motion } from 'framer-motion';
 import { useEnvironmentalData } from '@/hooks/useEnvironmentalData';
 
 export function FloatingAnalyticsOverlay() {
-  const { aqi, weather, airFreshness, co2Exposure, locationName } = useEnvironmentalData();
-
-  const getAQIColor = (aqi: number) => {
-    if (aqi <= 50) return 'text-[#00F5D4]';
-    if (aqi <= 100) return 'text-[#FFEB3B]';
-    if (aqi <= 150) return 'text-[#FF9800]';
-    if (aqi <= 200) return 'text-[#FF5252]';
-    return 'text-[#9C27B0]';
-  };
-
-  const getAQIBg = (aqi: number) => {
-    if (aqi <= 50) return 'from-[#00F5D4]/20 to-[#00F5D4]/5';
-    if (aqi <= 100) return 'from-[#FFEB3B]/20 to-[#FFEB3B]/5';
-    if (aqi <= 150) return 'from-[#FF9800]/20 to-[#FF9800]/5';
-    if (aqi <= 200) return 'from-[#FF5252]/20 to-[#FF5252]/5';
-    return 'from-[#9C27B0]/20 to-[#9C27B0]/5';
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2,
-      },
-    },
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 },
-  };
+  const { aqi, weather, airFreshness, co2Exposure } = useEnvironmentalData();
 
   if (!aqi || !weather) return null;
 
+  const stats = [
+    { label: 'AQI', value: aqi.aqi, unit: 'Index', color: 'text-cyan-400' },
+    { label: 'PM2.5', value: aqi.pm25.toFixed(1), unit: 'μg/m³', color: 'text-white' },
+    { label: 'TEMP', value: weather.temperature, unit: '°C', color: 'text-white' },
+    { label: 'HUMIDITY', value: weather.humidity, unit: '%', color: 'text-white' },
+    { label: 'WIND', value: weather.windSpeed.toFixed(1), unit: 'km/h', color: 'text-white' },
+    { label: 'OXYGEN', value: airFreshness?.score || 98, unit: '% Richness', color: 'text-emerald-400' },
+  ];
+
   return (
     <motion.div
-      className="fixed bottom-8 left-8 z-40 space-y-4 w-96"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
+      className="flex flex-col gap-2 w-48"
+      initial={{ x: -50, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.8 }}
     >
-      {/* Main AQI Card */}
-      <motion.div
-        variants={itemVariants}
-        className={`bg-gradient-to-br ${getAQIBg(aqi.aqi)} backdrop-blur-lg rounded-2xl p-6 border border-[#00F5D4]/30`}
-      >
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <p className="text-[#94A3B8] text-sm mb-1">Air Quality Index</p>
-            <h2 className={`text-5xl font-bold ${getAQIColor(aqi.aqi)}`}>{aqi.aqi}</h2>
-          </div>
+      {/* HUD Header */}
+      <div className="flex items-center gap-2 mb-2 px-2">
+        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+        <span className="text-[10px] text-cyan-500/60 font-bold tracking-[0.2em] uppercase">Environment</span>
+      </div>
+
+      {/* Stats List */}
+      <div className="flex flex-col gap-1">
+        {stats.map((stat, i) => (
           <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
-            className={`w-16 h-16 rounded-full border-2 ${getAQIColor(aqi.aqi).replace('text-', 'border-')} flex items-center justify-center`}
+            key={stat.label}
+            className="group relative flex items-center justify-between p-3 bg-black/40 backdrop-blur-md border border-white/5 hover:border-cyan-500/30 transition-all duration-300"
+            initial={{ x: -20, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ delay: i * 0.1 + 0.5 }}
           >
-            <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${getAQIBg(aqi.aqi)}`} />
+            <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-cyan-500/20 group-hover:bg-cyan-500 transition-colors" />
+            
+            <div className="flex flex-col">
+              <span className="text-[9px] text-slate-500 font-bold tracking-wider uppercase mb-0.5">{stat.label}</span>
+              <div className="flex items-baseline gap-1">
+                <span className={`text-lg font-mono font-bold ${stat.color}`}>{stat.value}</span>
+                <span className="text-[8px] text-slate-600 font-medium">{stat.unit}</span>
+              </div>
+            </div>
+
+            {/* Micro-sparkline or indicator */}
+            <div className="w-8 h-[1px] bg-white/5 overflow-hidden">
+               <motion.div 
+                 className={`h-full ${stat.color.replace('text-', 'bg-')}/40`}
+                 animate={{ x: ['-100%', '100%'] }}
+                 transition={{ duration: 2, repeat: Infinity, ease: 'linear', delay: i * 0.5 }}
+               />
+            </div>
           </motion.div>
-        </div>
+        ))}
+      </div>
 
-        <div className="grid grid-cols-2 gap-3 pt-4 border-t border-[#00F5D4]/20">
-          <div>
-            <p className="text-[#94A3B8] text-xs mb-1">PM2.5</p>
-            <p className="text-white font-semibold">{aqi.pm25.toFixed(1)} μg/m³</p>
-          </div>
-          <div>
-            <p className="text-[#94A3B8] text-xs mb-1">PM10</p>
-            <p className="text-white font-semibold">{aqi.pm10.toFixed(1)} μg/m³</p>
-          </div>
-          <div>
-            <p className="text-[#94A3B8] text-xs mb-1">NO₂</p>
-            <p className="text-white font-semibold">{aqi.no2.toFixed(1)} ppb</p>
-          </div>
-          <div>
-            <p className="text-[#94A3B8] text-xs mb-1">O₃</p>
-            <p className="text-white font-semibold">{aqi.o3.toFixed(1)} ppb</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Weather Card */}
-      <motion.div
-        variants={itemVariants}
-        className="bg-gradient-to-br from-blue-500/20 to-blue-500/5 backdrop-blur-lg rounded-2xl p-5 border border-blue-400/30"
-      >
-        <p className="text-[#94A3B8] text-sm mb-3">Weather Conditions</p>
-        <div className="grid grid-cols-3 gap-3">
-          <div>
-            <p className="text-[#94A3B8] text-xs mb-1">Temperature</p>
-            <p className="text-white font-semibold">{weather.temperature}°C</p>
-          </div>
-          <div>
-            <p className="text-[#94A3B8] text-xs mb-1">Humidity</p>
-            <p className="text-white font-semibold">{weather.humidity}%</p>
-          </div>
-          <div>
-            <p className="text-[#94A3B8] text-xs mb-1">Wind</p>
-            <p className="text-white font-semibold">{weather.windSpeed.toFixed(1)} km/h</p>
-          </div>
-        </div>
-      </motion.div>
-
-      {/* Air Freshness Card */}
-      {airFreshness && (
-        <motion.div
-          variants={itemVariants}
-          className="bg-gradient-to-br from-green-500/20 to-green-500/5 backdrop-blur-lg rounded-2xl p-5 border border-green-400/30"
-        >
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-[#94A3B8] text-sm mb-1">Air Freshness</p>
-              <p className="text-white text-lg font-semibold">{airFreshness.level}</p>
-            </div>
-            <div className="text-right">
-              <p className="text-green-400 text-3xl font-bold">{airFreshness.score}%</p>
-            </div>
-          </div>
-        </motion.div>
-      )}
-
-      {/* CO2 Exposure Card */}
-      {co2Exposure && (
-        <motion.div
-          variants={itemVariants}
-          className="bg-gradient-to-br from-orange-500/20 to-orange-500/5 backdrop-blur-lg rounded-2xl p-5 border border-orange-400/30"
-        >
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="text-[#94A3B8] text-sm mb-1">CO₂ Exposure</p>
-              <p className="text-white font-semibold">{co2Exposure.estimate.toFixed(0)} ppm</p>
-            </div>
-            <div className="text-right">
-              <p className="text-orange-400 text-sm">{co2Exposure.severity}</p>
-            </div>
-          </div>
-        </motion.div>
-      )}
+      {/* Footer Info */}
+      <div className="mt-4 px-2">
+        <div className="text-[8px] text-slate-600 tracking-widest uppercase mb-1">Status: Operational</div>
+        <div className="h-[1px] w-full bg-gradient-to-r from-cyan-500/20 to-transparent" />
+      </div>
     </motion.div>
   );
 }
