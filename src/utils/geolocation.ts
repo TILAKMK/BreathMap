@@ -2,8 +2,10 @@ import { UserLocation } from '@/types';
 
 export async function getCurrentLocation(): Promise<UserLocation> {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
+    // Check if running in browser
+    if (typeof window === 'undefined' || !navigator.geolocation) {
       reject(new Error('Geolocation not supported'));
+      return;
     }
 
     navigator.geolocation.getCurrentPosition(
@@ -26,6 +28,10 @@ export async function getCurrentLocation(): Promise<UserLocation> {
 }
 
 export function watchLocation(callback: (location: UserLocation) => void): number {
+  if (typeof window === 'undefined' || !navigator.geolocation) {
+    return 0;
+  }
+
   return navigator.geolocation.watchPosition(
     (position) => {
       callback({

@@ -1,12 +1,18 @@
 import { SoundAnalysis } from '@/types';
 
 export async function initializeAudioContext(): Promise<AudioContext> {
+  if (typeof window === 'undefined') {
+    throw new Error('Audio context not available on server');
+  }
   const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
   return new AudioContextClass();
 }
 
 export async function requestMicrophoneAccess(): Promise<MediaStream> {
   try {
+    if (typeof window === 'undefined' || !navigator.mediaDevices) {
+      throw new Error('Microphone not available');
+    }
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
     return stream;
   } catch (error) {

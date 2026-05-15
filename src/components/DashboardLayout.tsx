@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import { useLocation } from '@/hooks/useLocation';
 import { useAQI } from '@/hooks/useAQI';
 import { LoadingAnimation } from './LoadingAnimation';
@@ -9,9 +10,14 @@ import { MetricsCard } from './MetricsCard';
 import { HeatmapGrid } from './HeatmapGrid';
 import { SoundWaveVisualizer } from './SoundWaveVisualizer';
 import { EnvironmentTimeline } from './EnvironmentTimeline';
-import { EarthVisualization } from './EarthVisualization';
 import { CityRanking } from './CityRanking';
 import { AIBadge } from './AIBadge';
+
+// Dynamic import for Three.js component
+const EarthVisualization = dynamic(
+  () => import('./EarthVisualization').then((mod) => mod.EarthVisualization),
+  { ssr: false }
+);
 
 export function DashboardLayout() {
   const [showLoading, setShowLoading] = useState(true);
