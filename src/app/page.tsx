@@ -1,7 +1,7 @@
 'use client';
 
-import { LandingPage } from '@/components/LandingPage';
+import ImmersiveLandingPage from '@/components/ImmersiveLandingPage';
 
 export default function Home() {
-  return <LandingPage />;
+  return <ImmersiveLandingPage />;
 }
