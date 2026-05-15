@@ -1,6 +1,11 @@
 {
+  "framework": "nextjs",
   "buildCommand": "npm run build",
-  "installCommand": "npm install --legacy-peer-deps",
+  "installCommand": "npm install",
+  "dev": {
+    "command": "npm run dev",
+    "port": 3000
+  },
   "env": {
     "NEXT_PUBLIC_MAPBOX_API_KEY": "@next_public_mapbox_api_key",
     "NEXT_PUBLIC_OPENWEATHER_API_KEY": "@next_public_openweather_api_key",
