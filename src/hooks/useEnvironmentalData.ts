@@ -25,6 +25,12 @@ export interface EnvironmentalData {
   lastUpdate: Date | null;
 }
 
+// Default location (San Francisco) for demo when geolocation denied
+const DEFAULT_LOCATION = {
+  latitude: 37.7749,
+  longitude: -122.4194,
+};
+
 export function useEnvironmentalData(autoRefreshInterval: number = 60000) {
   const [data, setData] = useState<EnvironmentalData>({
     location: null,
@@ -43,8 +49,14 @@ export function useEnvironmentalData(autoRefreshInterval: number = 60000) {
       try {
         setData((prev) => ({ ...prev, loading: true, error: null }));
 
-        // Get user location
-        const location = await getUserLocation();
+        // Get user location with fallback
+        let location = DEFAULT_LOCATION as LocationData;
+        try {
+          location = await getUserLocation();
+        } catch (geoError) {
+          console.log('Using default location due to geolocation error');
+          location.accuracy = 0;
+        }
 
         // Fetch AQI and weather data in parallel
         const [aqi, weather, cityName] = await Promise.all([
