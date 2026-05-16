@@ -3,127 +3,134 @@
 import { motion } from 'framer-motion';
 
 export function PredictionTimeline() {
-  const data = [
-    { time: '00:00', aqi: 42, temp: 22, wind: 12 },
-    { time: '04:00', aqi: 38, temp: 20, wind: 10 },
-    { time: '08:00', aqi: 45, temp: 21, wind: 15 },
-    { time: '12:00', aqi: 52, temp: 24, wind: 18 },
-    { time: '16:00', aqi: 48, temp: 25, wind: 16 },
-    { time: '20:00', aqi: 40, temp: 23, wind: 14 },
-    { time: '24:00', aqi: 35, temp: 21, wind: 11 },
-  ];
+  // Mock data for graphs
+  const aqiTrend = [35, 42, 38, 55, 62, 48, 40, 35, 42, 50, 45, 38];
+  const pollutionSpikes = [0.2, 0.4, 0.1, 0.8, 0.9, 0.5, 0.3, 0.2, 0.6, 0.4, 0.2, 0.1];
+  const forecastLabels = ['-12h', '-10h', '-8h', '-6h', '-4h', '-2h', 'NOW', '+2h', '+4h', '+6h', '+8h', '+10h'];
 
-  const maxAQI = Math.max(...data.map((d) => d.aqi));
+  const maxAQI = Math.max(...aqiTrend);
 
   return (
-    <div className="w-full flex flex-col gap-4">
-      {/* Panel Header */}
-      <div className="flex items-center justify-between border-b border-white/5 pb-2">
-         <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-               <div className="w-2 h-2 bg-cyan-500 rounded-sm" />
-               <span className="text-[10px] text-white font-black tracking-[0.2em] uppercase">Atmospheric Projection Matrix</span>
-            </div>
-            <div className="h-3 w-[1px] bg-white/10" />
-            <span className="text-[9px] text-slate-500 font-bold uppercase tracking-widest">24-Hour Forecast Cycle</span>
+    <div className="w-full h-full flex flex-col gap-4">
+      {/* Dashboard Header */}
+      <div className="flex items-center justify-between border-b border-white/10 pb-2">
+         <div className="flex items-center gap-4">
+            <h3 className="text-sm font-black text-white tracking-[0.2em] uppercase glow-text">Atmospheric Analytics Matrix</h3>
+            <div className="h-4 w-[1px] bg-white/20" />
+            <span className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest">Global Predictive Model v9.2</span>
          </div>
          <div className="flex items-center gap-6">
             <div className="flex items-center gap-2">
-               <div className="w-1.5 h-1.5 rounded-full bg-cyan-500/40" />
-               <span className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">AQI Trend</span>
+               <div className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+               <span className="text-[9px] text-white/60 uppercase font-bold tracking-widest">Live AQI Trend</span>
             </div>
             <div className="flex items-center gap-2">
-               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40" />
-               <span className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Confidence: High</span>
+               <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
+               <span className="text-[9px] text-white/60 uppercase font-bold tracking-widest">Pollution Spikes</span>
             </div>
          </div>
       </div>
 
-      {/* Main Timeline Visualization */}
-      <div className="relative h-24 w-full flex items-end justify-between px-12">
-        {/* Horizontal Grid Lines */}
-        <div className="absolute inset-0 flex flex-col justify-between opacity-[0.03] pointer-events-none">
-          <div className="w-full h-[1px] bg-white" />
-          <div className="w-full h-[1px] bg-white" />
-          <div className="w-full h-[1px] bg-white" />
-          <div className="w-full h-[1px] bg-white" />
-        </div>
-
-        {/* Data Columns */}
-        {data.map((item, i) => (
-          <div key={i} className="relative flex flex-col items-center group">
-            {/* Wind Vector (Decoration) */}
-            <motion.div 
-               className="absolute -top-12 w-[1px] bg-cyan-500/20"
-               initial={{ height: 0 }}
-               animate={{ height: item.wind * 2 }}
-            />
-            
-            {/* AQI Bar */}
-            <div className="relative w-12 flex flex-col items-center">
-              <motion.div
-                className="w-1 bg-gradient-to-t from-cyan-500/10 to-cyan-500 shadow-[0_0_15px_rgba(34,211,238,0.3)] rounded-t-full"
-                initial={{ height: 0 }}
-                animate={{ height: `${(item.aqi / maxAQI) * 60}px` }}
-                transition={{ delay: i * 0.05, duration: 1 }}
-              />
-              {/* Secondary Value (Temp) */}
-              <motion.div 
-                className="absolute w-6 h-[1px] bg-emerald-500/40"
-                style={{ bottom: `${(item.temp / 30) * 100}%` }}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-              />
+      {/* Main Graphs Container */}
+      <div className="flex-1 flex gap-8">
+         
+         {/* Left Graph: Large Area Chart (AQI Trend & Forecast) */}
+         <div className="flex-[2] relative flex flex-col">
+            <div className="absolute top-0 right-0 text-right">
+               <span className="text-[10px] text-white/40 uppercase font-black tracking-widest block">24H Trend Analysis</span>
+               <span className="text-lg font-black text-cyan-400">Stable Pattern</span>
             </div>
 
-            {/* Hover Tooltip Placeholder */}
-            <div className="absolute -top-16 opacity-0 group-hover:opacity-100 transition-all duration-300 bg-black/80 border border-cyan-500/30 px-3 py-2 rounded-sm backdrop-blur-md z-50 pointer-events-none">
-               <p className="text-[8px] text-cyan-400 font-black uppercase mb-1">T-{item.time}</p>
-               <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-                  <span className="text-[7px] text-slate-500 uppercase">AQI: {item.aqi}</span>
-                  <span className="text-[7px] text-slate-500 uppercase">Temp: {item.temp}°C</span>
+            <div className="flex-1 relative mt-6 border-b border-white/10">
+               {/* Grid Lines */}
+               <div className="absolute inset-0 flex flex-col justify-between opacity-[0.05] pointer-events-none">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="w-full h-[1px] bg-white" />
+                  ))}
+               </div>
+
+               {/* Area Chart SVG */}
+               <svg className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                 <defs>
+                    <linearGradient id="aqiArea" x1="0%" y1="0%" x2="0%" y2="100%">
+                       <stop offset="0%" stopColor="#22d3ee" stopOpacity="0.3" />
+                       <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
+                    </linearGradient>
+                 </defs>
+                 <motion.path
+                   d={`M 0 100 ${aqiTrend.map((d, i) => `L ${i * (100 / (aqiTrend.length - 1))}% ${100 - ((d / maxAQI) * 90)}%`).join(' ')} L 100% 100% Z`}
+                   fill="url(#aqiArea)"
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   transition={{ duration: 1.5 }}
+                 />
+                 <motion.path
+                   d={`M 0 ${100 - ((aqiTrend[0] / maxAQI) * 90)}% ${aqiTrend.map((d, i) => `L ${i * (100 / (aqiTrend.length - 1))}% ${100 - ((d / maxAQI) * 90)}%`).join(' ')}`}
+                   fill="none"
+                   stroke="#22d3ee"
+                   strokeWidth="2"
+                   initial={{ pathLength: 0 }}
+                   animate={{ pathLength: 1 }}
+                   transition={{ duration: 2, ease: "easeInOut" }}
+                 />
+               </svg>
+
+               {/* Vertical markers for data points */}
+               <div className="absolute inset-0 flex justify-between items-end">
+                  {aqiTrend.map((d, i) => (
+                     <div key={i} className="relative h-full flex flex-col justify-end group cursor-pointer w-4 items-center">
+                        <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 border border-cyan-500/30 p-2 rounded text-center z-10 pointer-events-none">
+                           <span className="text-[10px] font-black text-cyan-400 block">{d} AQI</span>
+                           <span className="text-[8px] text-white/50">{forecastLabels[i]}</span>
+                        </div>
+                        <div className="w-[1px] h-full bg-cyan-500/10 group-hover:bg-cyan-500/50 transition-colors" />
+                     </div>
+                  ))}
                </div>
             </div>
 
-            {/* X-Axis Label */}
-            <div className="mt-4 flex flex-col items-center">
-               <span className="text-[9px] font-mono font-black text-white/80 group-hover:text-cyan-400 transition-colors">{item.time}</span>
-               <div className="w-[1px] h-2 bg-white/10 mt-1" />
-            </div>
-          </div>
-        ))}
-
-        {/* Decorative Connected Area */}
-        <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-[0.05]" preserveAspectRatio="none">
-          <motion.path
-            d={`M 0 80 Q 10% 40, 20% 60 T 40% 30 T 60% 50 T 80% 20 T 100% 40 L 100 100 L 0 100 Z`}
-            fill="url(#area-gradient)"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 2 }}
-          />
-          <defs>
-            <linearGradient id="area-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#22d3ee" stopOpacity="1" />
-              <stop offset="100%" stopColor="#22d3ee" stopOpacity="0" />
-            </linearGradient>
-          </defs>
-        </svg>
-      </div>
-
-      {/* Footer Metrics */}
-      <div className="flex justify-between items-center px-4 pt-2">
-         <div className="flex gap-8">
-            <div className="flex flex-col">
-               <span className="text-[7px] text-slate-600 uppercase font-black tracking-widest">Mean Projection</span>
-               <span className="text-[10px] text-white font-mono">42.85 index</span>
-            </div>
-            <div className="flex flex-col">
-               <span className="text-[7px] text-slate-600 uppercase font-black tracking-widest">Anomaly Risk</span>
-               <span className="text-[10px] text-emerald-500 font-mono">Low (< 4%)</span>
+            {/* X-Axis Labels */}
+            <div className="flex justify-between mt-2 px-2">
+               {forecastLabels.map((label, i) => (
+                  <span key={i} className={`text-[9px] font-bold tracking-wider ${label === 'NOW' ? 'text-cyan-400' : 'text-white/30'}`}>{label}</span>
+               ))}
             </div>
          </div>
-         <div className="text-[7px] text-slate-700 uppercase tracking-[0.4em]">Predictive Engine: Neural-X v9.1</div>
+
+         {/* Right Graph: Pollution Spikes (Bar Chart) */}
+         <div className="flex-[1] relative flex flex-col border-l border-white/10 pl-8">
+            <div className="absolute top-0 right-0 text-right">
+               <span className="text-[10px] text-white/40 uppercase font-black tracking-widest block">Micro-Particulate Activity</span>
+               <span className="text-lg font-black text-red-400">0.9 Max</span>
+            </div>
+
+            <div className="flex-1 relative mt-6 flex items-end justify-between border-b border-white/10">
+               {pollutionSpikes.map((spike, i) => (
+                  <div key={i} className="w-full px-1 group h-full flex items-end relative">
+                     {/* Spike Bar */}
+                     <motion.div
+                       className={`w-full rounded-t-sm relative overflow-hidden ${spike > 0.7 ? 'bg-red-500' : spike > 0.4 ? 'bg-orange-500' : 'bg-emerald-500/60'}`}
+                       initial={{ height: 0 }}
+                       animate={{ height: `${spike * 90}%` }}
+                       transition={{ duration: 1, delay: i * 0.05 }}
+                     >
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                     </motion.div>
+
+                     {/* Hover Value */}
+                     <div className="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                        <span className="text-[8px] text-white bg-black/80 px-1 py-0.5 rounded border border-white/20">{spike.toFixed(2)}</span>
+                     </div>
+                  </div>
+               ))}
+            </div>
+
+            <div className="flex justify-between mt-2">
+               <span className="text-[8px] text-white/30 font-bold uppercase tracking-widest">Past 12h</span>
+               <span className="text-[8px] text-white/30 font-bold uppercase tracking-widest">Current</span>
+            </div>
+         </div>
+
       </div>
     </div>
   );

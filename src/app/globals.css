@@ -272,3 +272,100 @@ body {
 .gradient-dark {
   background: linear-gradient(135deg, #000000 0%, #0a0a0a 30%, #0f0f2e 60%, #050505 100%);
 }
+
+/* Section Spacing */
+section {
+  scroll-margin-top: 56px;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Chart Animations */
+@keyframes chart-grow {
+  from {
+    opacity: 0;
+    transform: scaleY(0);
+    transform-origin: bottom;
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+.chart-animate {
+  animation: chart-grow 1.2s ease-out;
+}
+
+/* Bar Animation */
+@keyframes bar-fill {
+  from {
+    width: 0;
+    opacity: 0;
+  }
+  to {
+    width: 100%;
+    opacity: 1;
+  }
+}
+
+.bar-animate {
+  animation: bar-fill 1s ease-out;
+}
+
+/* Number Counter Animation */
+@keyframes number-pulse {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 1; }
+}
+
+.number-counter {
+  animation: number-pulse 0.6s ease-out;
+}
+
+/* Waveform Animation */
+@keyframes waveform-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+.waveform-bar {
+  animation: waveform-pulse 0.3s ease-in-out infinite;
+}
+
+/* Fade and Slide In */
+@keyframes fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-slide-in {
+  animation: fade-slide-in 0.6s ease-out;
+}
+
+/* Staggered Animation Delays */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* Hover Effects */
+.hover-lift {
+  transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 200, 255, 0.2);
+}

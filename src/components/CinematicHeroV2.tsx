@@ -1,9 +1,16 @@
 'use client';
 
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 import { EarthVisualization } from './EarthVisualization';
 
 export function CinematicHeroV2() {
+  const router = useRouter();
+
+  const enterCommandCenter = () => {
+    router.push('/command-center');
+  };
+
   return (
     <div className="relative w-full min-h-screen bg-[#050816] overflow-hidden flex items-center justify-center">
       {/* Background Depth */}
@@ -98,7 +105,7 @@ export function CinematicHeroV2() {
             className="group relative px-10 py-4 overflow-hidden rounded-sm"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
+            onClick={enterCommandCenter}
           >
             <div className="absolute inset-0 bg-cyan-500/10 border border-cyan-500/30 group-hover:bg-cyan-500/20 transition-all duration-300" />
             <div className="absolute inset-0 flex items-center justify-center">

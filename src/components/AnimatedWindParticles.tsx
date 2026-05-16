@@ -69,7 +69,8 @@ export function AnimatedWindParticles() {
         ctx.shadowBlur = 2;
 
         ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * (p.life / p.maxLife), 0, Math.PI * 2);
+        const radius = Math.max(0, p.size * (p.life / p.maxLife));
+        ctx.arc(p.x, p.y, radius, 0, Math.PI * 2);
         ctx.fill();
 
         // Remove dead particles

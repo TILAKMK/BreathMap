@@ -2,126 +2,104 @@
 
 import dynamic from 'next/dynamic';
 
-// Dynamic imports for heavy components
-const CinematicHeroV2 = dynamic(() => import('./CinematicHeroV2').then((mod) => ({ default: mod.CinematicHeroV2 })), {
-  ssr: false,
-});
-
-const FullscreenLiveMap = dynamic(
-  () => import('./FullscreenLiveMap').then((mod) => ({ default: mod.FullscreenLiveMap })),
-  {
-    ssr: false,
-  }
-);
-
-const FloatingAnalyticsOverlay = dynamic(
-  () => import('./FloatingAnalyticsOverlay').then((mod) => ({ default: mod.FloatingAnalyticsOverlay })),
-  {
-    ssr: false,
-  }
-);
-
-const RadarScan = dynamic(() => import('./RadarScan').then((mod) => ({ default: mod.RadarScan })), {
-  ssr: false,
-});
-
-const LiveSoundWaveform = dynamic(
-  () => import('./LiveSoundWaveform').then((mod) => ({ default: mod.LiveSoundWaveform })),
-  {
-    ssr: false,
-  }
-);
-
-const AIScanMode = dynamic(() => import('./AIScanMode').then((mod) => ({ default: mod.AIScanMode })), {
-  ssr: false,
-});
-
-const PredictionTimeline = dynamic(
-  () => import('./PredictionTimeline').then((mod) => ({ default: mod.PredictionTimeline })),
-  {
-    ssr: false,
-  }
-);
-
-const AnimatedWindParticles = dynamic(
-  () => import('./AnimatedWindParticles').then((mod) => ({ default: mod.AnimatedWindParticles })),
-  {
-    ssr: false,
-  }
-);
+// Dynamic imports
+const CinematicHeroV2 = dynamic(() => import('./CinematicHeroV2').then((mod) => ({ default: mod.CinematicHeroV2 })), { ssr: false });
+const FullscreenLiveMap = dynamic(() => import('./FullscreenLiveMap').then((mod) => ({ default: mod.FullscreenLiveMap })), { ssr: false });
+const FloatingAnalyticsOverlay = dynamic(() => import('./FloatingAnalyticsOverlay').then((mod) => ({ default: mod.FloatingAnalyticsOverlay })), { ssr: false });
+const RadarScan = dynamic(() => import('./RadarScan').then((mod) => ({ default: mod.RadarScan })), { ssr: false });
+const AIScanMode = dynamic(() => import('./AIScanMode').then((mod) => ({ default: mod.AIScanMode })), { ssr: false });
+const PredictionTimeline = dynamic(() => import('./PredictionTimeline').then((mod) => ({ default: mod.PredictionTimeline })), { ssr: false });
+const AnimatedWindParticles = dynamic(() => import('./AnimatedWindParticles').then((mod) => ({ default: mod.AnimatedWindParticles })), { ssr: false });
+const LiveSoundWaveform = dynamic(() => import('./LiveSoundWaveform').then((mod) => ({ default: mod.LiveSoundWaveform })), { ssr: false });
+const AnimatedGraphs = dynamic(() => import('./AnimatedGraphs'), { ssr: false });
 
 export default function ImmersiveLandingPage() {
   return (
-    <main className="relative w-full bg-[#050816] overflow-x-hidden selection:bg-cyan-500/30">
-      {/* Animated background particles */}
+    <main className="relative w-full bg-[#050816] overflow-x-hidden selection:bg-cyan-500/30 font-sans">
       <AnimatedWindParticles />
 
-      {/* Section 1: Cinematic Hero */}
-      <section className="relative w-full min-h-screen">
+      {/* SECTION 1: Cinematic Hero Landing Page */}
+      <section id="hero" className="relative w-full min-h-screen">
         <CinematicHeroV2 />
       </section>
 
-      {/* Section 2: Fullscreen Command Center */}
-      <section className="relative w-full h-screen overflow-hidden flex flex-col">
-        {/* Top Header Strip (Minimal) */}
-        <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/80 to-transparent z-40 flex items-center justify-between px-8 pointer-events-none">
-          <div className="flex items-center gap-4">
-             <div className="w-10 h-[1px] bg-cyan-500/50" />
-             <span className="text-[10px] text-cyan-400/60 tracking-[0.4em] uppercase font-bold">Atmospheric Node 01</span>
-          </div>
-          <div className="flex items-center gap-6">
-             <div className="flex flex-col items-end">
-                <span className="text-[10px] text-white/40 tracking-widest uppercase">System Status</span>
-                <span className="text-[10px] text-cyan-400 uppercase font-bold">Synchronized</span>
-             </div>
-             <div className="w-10 h-[1px] bg-cyan-500/50" />
-          </div>
+      {/* SECTION 2: Massive Live Environmental Map */}
+      <section id="live-map" className="relative w-full h-[100vh] border-y border-white/5 bg-black">
+        {/* Section Header */}
+        <div className="absolute top-8 left-8 z-40 bg-black/40 backdrop-blur-md border border-white/10 p-4 rounded-xl pointer-events-none">
+           <h2 className="text-sm font-black text-white tracking-[0.3em] uppercase glow-text">Global Atmospheric Map</h2>
+           <p className="text-[10px] text-cyan-400 font-bold uppercase tracking-widest mt-1">Live Sensor Array</p>
         </div>
-
-        {/* Central Map - Dominant */}
+        
+        {/* Fullscreen Map Component */}
         <div className="absolute inset-0 z-10">
           <FullscreenLiveMap />
         </div>
+        
+        {/* Overlay Gradients */}
+        <div className="absolute inset-0 pointer-events-none z-20 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(5,8,22,0.8)_100%)]" />
+      </section>
 
-        {/* HUD Frame Overlay */}
-        <div className="absolute inset-0 z-30 pointer-events-none flex">
-          {/* Left Sidebar: Data Rich Environmental Stats */}
-          <div className="w-80 h-full bg-gradient-to-r from-black/60 via-black/20 to-transparent backdrop-blur-[2px] p-8 flex flex-col gap-6 pointer-events-auto border-r border-white/5">
-            <FloatingAnalyticsOverlay />
-          </div>
-
-          {/* Center Space for Map Interactivity */}
-          <div className="flex-1 relative">
-             {/* Sound Waveform - Floating in center bottom */}
-             <div className="absolute bottom-32 left-1/2 -translate-x-1/2 pointer-events-auto">
-                <LiveSoundWaveform />
-             </div>
-          </div>
-
-          {/* Right Sidebar: AI, Radar & Alerts */}
-          <div className="w-80 h-full bg-gradient-to-l from-black/60 via-black/20 to-transparent backdrop-blur-[2px] p-8 flex flex-col gap-8 items-end pointer-events-auto border-l border-white/5">
-            <AIScanMode />
-            <RadarScan />
-            {/* Added Alert System Placeholder */}
-            <div className="w-full mt-auto">
-               <div className="flex items-center justify-end gap-2 mb-2">
-                 <span className="text-[10px] text-red-500/60 font-bold tracking-[0.2em] uppercase">Alert Matrix</span>
-                 <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-               </div>
-               <div className="bg-red-500/5 border border-red-500/20 p-3 rounded-sm">
-                 <p className="text-[9px] text-red-400 uppercase leading-relaxed">No critical atmospheric anomalies detected in current sector.</p>
-               </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Bottom Panel: Timeline & Predictions */}
-        <div className="absolute bottom-0 left-0 right-0 h-48 bg-gradient-to-t from-black/80 via-black/40 to-transparent z-40 pointer-events-auto border-t border-white/5 flex flex-col justify-end">
-          <div className="px-8 pb-4">
-             <PredictionTimeline />
-          </div>
+      {/* SECTION 3: Environmental Telemetry */}
+      <section className="relative w-full min-h-screen py-32 px-8 lg:px-24 bg-[radial-gradient(ellipse_at_top,rgba(34,211,238,0.05),transparent_50%)]">
+        <div className="max-w-7xl mx-auto flex flex-col items-center">
+           <div className="text-center mb-24">
+              <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase glow-text mb-4">Live Telemetry</h2>
+              <p className="text-sm text-cyan-400/80 uppercase tracking-[0.3em] font-bold">Atmospheric Node Alpha-01</p>
+           </div>
+           
+           <div className="w-full max-w-4xl bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-12 shadow-[0_0_50px_rgba(34,211,238,0.05)]">
+              <FloatingAnalyticsOverlay />
+           </div>
         </div>
       </section>
+
+      {/* SECTION 4: Analytics and Prediction Graphs */}
+      <section className="relative w-full min-h-screen py-32 bg-[#050816]">
+         <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase glow-text mb-4">Environmental Trends</h2>
+            <p className="text-sm text-cyan-400/80 uppercase tracking-[0.3em] font-bold">24-Hour Atmospheric Analysis</p>
+         </div>
+         <AnimatedGraphs />
+      </section>
+
+      {/* SECTION 5: AI Scan Systems + Radar */}
+      <section className="relative w-full min-h-screen py-32 px-8 lg:px-24 bg-[radial-gradient(ellipse_at_center,rgba(16,185,129,0.05),transparent_50%)]">
+         <div className="max-w-7xl mx-auto flex flex-col items-center">
+            <div className="text-center mb-24">
+               <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase glow-text mb-4">Tactical Intelligence</h2>
+               <p className="text-sm text-emerald-400/80 uppercase tracking-[0.3em] font-bold">Neural Scan & Proximity Radar</p>
+            </div>
+            
+            <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-12">
+               <div className="w-full bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-12 shadow-[0_0_50px_rgba(16,185,129,0.05)] flex items-center justify-center">
+                  <RadarScan />
+               </div>
+               <div className="w-full bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-12 shadow-[0_0_50px_rgba(34,211,238,0.05)] flex items-center justify-center">
+                  <AIScanMode />
+               </div>
+            </div>
+         </div>
+      </section>
+
+      {/* SECTION 6: Environmental Forecasting + Insights */}
+      <section className="relative w-full min-h-screen py-32 px-8 lg:px-24 bg-[#050816] border-t border-white/5">
+         <div className="max-w-7xl mx-auto flex flex-col items-center">
+            <div className="text-center mb-24">
+               <h2 className="text-4xl md:text-5xl font-black text-white tracking-tight uppercase glow-text mb-4">Predictive Forecasting</h2>
+               <p className="text-sm text-cyan-400/80 uppercase tracking-[0.3em] font-bold">Global Atmospheric Model v9.2</p>
+            </div>
+            
+            <div className="w-full flex flex-col items-center gap-16">
+               <LiveSoundWaveform />
+               
+               <div className="w-full bg-black/40 backdrop-blur-2xl border border-white/10 rounded-3xl p-12 shadow-[0_0_50px_rgba(34,211,238,0.05)]">
+                  <PredictionTimeline />
+               </div>
+            </div>
+         </div>
+      </section>
+
     </main>
   );
 }
