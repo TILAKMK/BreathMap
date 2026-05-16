@@ -341,7 +341,7 @@ export default function Home() {
             <div className="pill"><span className="pill-dot"></span>AI CORE ONLINE</div>
             <div className="pill"><span className="pill-dot amber"></span>AWAITING LOCATION</div>
           </div>
-          <button id="enter-btn" style={{position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '16px', padding: '18px 48px', background: 'transparent', border: '1px solid var(--teal)', borderRadius: '4px', color: 'var(--teal)', fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '6px', cursor: 'none', transition: 'all 0.3s', marginBottom: '20px'}} onClick={() => (window as any).initializeSystem?.()}>
+          <button id="enter-btn" style={{position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '16px', padding: '18px 48px', background: 'transparent', border: '1px solid var(--teal)', borderRadius: '4px', color: 'var(--teal)', fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '6px', cursor: 'none', transition: 'all 0.3s', marginBottom: '20px'}} onClick={() => (window as any).initializeSystem?.()} onMouseDown={() => console.log('Button clicked')}>
             <span>INITIALIZE SYSTEM</span>
             <span>→</span>
             <div className="btn-scan"></div>
@@ -701,6 +701,26 @@ export default function Home() {
           document.getElementById('aria-input').value = msg;
           (window as any).sendToAria?.();
         };
+
+        // Setup button click handler
+        function setupButtonHandler() {
+          const btn = document.getElementById('enter-btn');
+          if (btn) {
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              if (typeof window.initializeSystem === 'function') {
+                window.initializeSystem();
+              }
+            });
+          }
+        }
+
+        // Try to setup immediately
+        setupButtonHandler();
+        
+        // Also try after a small delay
+        setTimeout(setupButtonHandler, 100);
+        setTimeout(setupButtonHandler, 500);
 
         updateSystemClock();
       `}} />
