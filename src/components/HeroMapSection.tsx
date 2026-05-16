@@ -18,9 +18,9 @@ interface HeroMapSectionProps {
 
 export function HeroMapSection({ aqi, weather, location, locationName }: HeroMapSectionProps) {
   return (
-    <div className="relative w-full h-full overflow-hidden bg-black">
+    <div className="relative w-full h-full overflow-visible bg-black">
       {/* Fullscreen Map */}
-      <div className="absolute inset-0 z-10">
+      <div className="absolute inset-0 z-10 w-full h-full">
         <FullscreenLiveMap />
       </div>
 
@@ -29,13 +29,13 @@ export function HeroMapSection({ aqi, weather, location, locationName }: HeroMap
 
       {/* Left Overlay: Environment Stats Card */}
       <motion.div
-        className="absolute left-8 top-32 bottom-32 w-80 z-30 pointer-events-auto"
+        className="fixed left-4 sm:left-6 lg:left-8 top-24 sm:top-28 lg:top-32 z-30 pointer-events-auto w-72 max-h-[calc(100vh-200px)] overflow-y-auto"
         initial={{ opacity: 0, x: -50 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
       >
-        <div className="h-full bg-black/60 backdrop-blur-2xl border border-cyan-500/20 rounded-2xl p-8 shadow-2xl overflow-y-auto">
+        <div className="bg-black/60 backdrop-blur-2xl border border-cyan-500/20 rounded-2xl p-8 shadow-2xl">
           <h3 className="text-xs text-cyan-400 uppercase tracking-[0.2em] font-black mb-6">ENVIRONMENT STATS</h3>
           
           <div className="space-y-4">
@@ -87,34 +87,34 @@ export function HeroMapSection({ aqi, weather, location, locationName }: HeroMap
 
       {/* Right Overlay: AI Neural Core + Radar */}
       <motion.div
-        className="absolute right-8 top-32 bottom-32 w-80 z-30 pointer-events-auto flex flex-col gap-6"
+        className="fixed right-4 sm:right-6 lg:right-8 top-24 sm:top-28 lg:top-32 z-30 pointer-events-auto w-80 max-h-[calc(100vh-200px)] flex flex-col gap-6 overflow-y-auto"
         initial={{ opacity: 0, x: 50 }}
         whileInView={{ opacity: 1, x: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8 }}
       >
         {/* AI Scan Mode */}
-        <div className="flex-1 min-h-0">
+        <div className="flex-shrink-0">
           <AIScanMode />
         </div>
 
         {/* Radar Scan */}
-        <div className="flex-1 min-h-0">
+        <div className="flex-shrink-0">
           <RadarScan />
         </div>
       </motion.div>
 
       {/* Bottom Overlay: Data Source Info */}
       <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30"
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 z-30"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
-        <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-full px-8 py-3 text-center">
-          <p className="text-xs text-white/60 uppercase tracking-[0.2em] font-bold">
-            Data Source: Sentinel-5P • Update Frequency: 60s • Coordinates: {location?.latitude.toFixed(2)}°, {location?.longitude.toFixed(2)}°
+        <div className="bg-black/60 backdrop-blur-xl border border-white/10 rounded-full px-6 sm:px-8 py-3 text-center max-w-md sm:max-w-lg">
+          <p className="text-xs text-white/60 uppercase tracking-[0.2em] font-bold break-words">
+            Data Source: Sentinel-5P • Update: 60s • {location?.latitude.toFixed(2)}°, {location?.longitude.toFixed(2)}°
           </p>
         </div>
       </motion.div>

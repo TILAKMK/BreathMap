@@ -1,215 +1,236 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useEnvironmentalData } from '@/hooks/useEnvironmentalData';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
-// Use a public Mapbox token - alternatively you can use a tile provider without auth
-const MAPBOX_TOKEN = 'pk.eyJ1IjoiZXhhbXBsZSIsImEiOiJjbGV4YW1wbGUifQ.example';
+// Leaflet default icon fix
+const defaultIcon = L.icon({
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
+
+L.Marker.prototype.options.icon = defaultIcon;
 
 export function FullscreenLiveMap() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<mapboxgl.Map | null>(null);
+  const mapRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
+  const circleRef = useRef<L.Circle | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
-  const { location, aqi, loading } = useEnvironmentalData();
+  const { location, aqi } = useEnvironmentalData();
 
   // Initialize map
   useEffect(() => {
-    if (!containerRef.current) return;
-
-    mapboxgl.accessToken = MAPBOX_TOKEN;
+    if (!containerRef.current || mapRef.current) return;
 
     try {
-      const map = new mapboxgl.Map({
-        container: containerRef.current,
-        style: 'mapbox://styles/mapbox/dark-v11',
-        center: [location?.longitude || -122.4194, location?.latitude || 37.7749],
+      // Create map with CartoDB dark tiles (no token needed)
+      const map = L.map(containerRef.current, {
+        center: [location?.latitude || 12.2958, location?.longitude || 76.6394],
         zoom: 12,
-        pitch: 60,
-        bearing: -20,
-        antialias: true
+        zoomControl: true,
+        attributionControl: true,
+        dragging: true,
+        scrollWheelZoom: true,
       });
+
+      // CartoDB Dark tile layer
+      L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+        {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+          subdomains: 'abcd',
+          maxZoom: 20,
+        }
+      ).addTo(map);
 
       mapRef.current = map;
+      
+      // Wait for map to be fully ready
+      setTimeout(() => setMapLoaded(true), 500);
 
-      map.on('load', () => {
-        setMapLoaded(true);
+      if (location) {
+        // Add pulsing location marker
+        const markerHtml = `
+          <div style="
+            width: 60px;
+            height: 60px;
+            background: radial-gradient(circle, rgba(0,200,255,0.3) 0%, transparent 70%);
+            border: 2px solid rgba(0,200,255,0.6);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: mapPulse 2s infinite;
+            box-shadow: 0 0 20px rgba(0,200,255,0.3);
+          ">
+            <div style="
+              width: 12px;
+              height: 12px;
+              background: #00c8ff;
+              border-radius: 50%;
+              box-shadow: 0 0 15px #00c8ff;
+            "></div>
+          </div>
+        `;
 
-        // Add 3D terrain and buildings for "NASA mission control" feel
-        map.addSource('mapbox-dem', {
-          'type': 'raster-dem',
-          'url': 'mapbox://mapbox.mapbox-terrain-dem-v1',
-          'tileSize': 512,
-          'maxzoom': 14
+        const icon = L.divIcon({
+          html: markerHtml,
+          iconSize: [60, 60],
+          className: 'custom-marker-icon',
         });
-        map.setTerrain({ 'source': 'mapbox-dem', 'exaggeration': 1.5 });
 
-        // Add atmospheric fog
-        map.setFog({
-          'range': [0.5, 10],
-          'color': '#050816',
-          'high-color': '#0a0e27',
-          'space-color': '#000000',
-          'horizon-blend': 0.1
-        });
+        const marker = L.marker([location.latitude, location.longitude], { icon })
+          .addTo(map);
 
-        // Add location marker with pulse effect
-        if (location) {
-          addCustomMarker(map, [location.longitude, location.latitude]);
-        }
+        markerRef.current = marker;
 
-        // Add AQI heatmap layer
-        if (aqi) {
-          addAQIHeatmapLayer(map, aqi.aqi);
-        }
-      });
+        // Add AQI-based circle indicator
+        const aqiColor = !aqi
+          ? '#00c8ff'
+          : aqi.aqi <= 50
+          ? '#00ff88'
+          : aqi.aqi <= 100
+          ? '#ffaa00'
+          : aqi.aqi <= 150
+          ? '#ff7700'
+          : '#ff3535';
+
+        const circle = L.circle([location.latitude, location.longitude], {
+          color: aqiColor,
+          fillColor: aqiColor,
+          fillOpacity: 0.1,
+          weight: 2,
+          radius: 500,
+          dashArray: '5, 5',
+        }).addTo(map);
+
+        circleRef.current = circle;
+      }
 
       return () => {
-        map.remove();
+        if (mapRef.current) {
+          mapRef.current.remove();
+          mapRef.current = null;
+        }
       };
     } catch (error) {
       console.error('Error initializing map:', error);
-      useOpenStreetMapFallback();
+    }
+  }, []);
+
+  // Update marker and circle when location changes
+  useEffect(() => {
+    if (!mapRef.current || !location) return;
+
+    mapRef.current.panTo([location.latitude, location.longitude], { animate: true, duration: 1 });
+
+    if (circleRef.current && aqi) {
+      const aqiColor = aqi.aqi <= 50
+        ? '#00ff88'
+        : aqi.aqi <= 100
+        ? '#ffaa00'
+        : aqi.aqi <= 150
+        ? '#ff7700'
+        : '#ff3535';
+
+      circleRef.current.setStyle({
+        color: aqiColor,
+        fillColor: aqiColor,
+      });
     }
   }, [location, aqi]);
 
-  const addCustomMarker = (map: mapboxgl.Map, coords: [number, number]) => {
-    const el = document.createElement('div');
-    el.className = 'custom-marker';
-    el.style.cssText = `
-      width: 48px;
-      height: 48px;
-      background: radial-gradient(circle, #22d3ee 0%, transparent 70%);
-      border: 1px solid rgba(34, 211, 238, 0.5);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 20px rgba(34, 211, 238, 0.3);
-      animation: mapPulse 4s infinite;
-    `;
-    
-    const inner = document.createElement('div');
-    inner.style.cssText = `
-      width: 8px;
-      height: 8px;
-      background: #22d3ee;
-      border-radius: 50%;
-      box-shadow: 0 0 10px #22d3ee;
-    `;
-    el.appendChild(inner);
-
-    new mapboxgl.Marker(el)
-      .setLngLat(coords)
-      .addTo(map);
-  };
-
-  const useOpenStreetMapFallback = () => {
-    if (!containerRef.current) return;
-    containerRef.current.innerHTML = `
-      <div style="width:100%; height:100%; background:#050816; display:flex; align-items:center; justify-content:center;">
-        <div style="text-align:center;">
-          <div style="color:#22d3ee; font-size:48px; margin-bottom:16px;">🛰️</div>
-          <div style="color:white; font-size:24px; font-weight:bold; letter-spacing:0.2em; text-transform:uppercase;">Map Satellite Offline</div>
-          <div style="color:#94a3b8; font-size:12px; margin-top:8px; text-transform:uppercase; letter-spacing:0.1em;">Re-establishing Uplink...</div>
-        </div>
-      </div>
-    `;
-  };
-
   return (
-    <div className="relative w-full h-full bg-[#050816] overflow-hidden">
+    <div className="relative w-full h-full bg-black overflow-hidden">
       {/* Map Container */}
-      <div ref={containerRef} className="absolute inset-0 w-full h-full" />
+      <div 
+        ref={containerRef} 
+        className="absolute inset-0 w-full h-full" 
+        style={{ zIndex: 1 }}
+      />
 
       {/* Atmospheric Overlays */}
-      <div className="absolute inset-0 pointer-events-none z-20">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(5,8,22,0.4)_100%)]" />
+      <div className="absolute inset-0 pointer-events-none z-10">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_20%,rgba(0,0,0,0.4)_100%)]" />
         
-        {/* Scanning grid overlay */}
-        <div className="absolute inset-0 opacity-[0.03]" 
-             style={{ backgroundImage: 'linear-gradient(#22d3ee 1px, transparent 1px), linear-gradient(90deg, #22d3ee 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        {/* Grid overlay - subtle */}
+        <div 
+          className="absolute inset-0 opacity-[0.02]" 
+          style={{
+            backgroundImage: 'linear-gradient(#00c8ff 1px, transparent 1px), linear-gradient(90deg, #00c8ff 1px, transparent 1px)',
+            backgroundSize: '50px 50px'
+          }}
+        />
       </div>
 
-      {/* Map Interactive HUD */}
-      <AnimatePresence>
-        {mapLoaded && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30"
-          >
-             {/* Center Crosshair */}
-             <div className="relative w-64 h-64 border border-cyan-500/10 rounded-full">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1px] h-4 bg-cyan-500/40" />
-                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[1px] h-4 bg-cyan-500/40" />
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-4 h-[1px] bg-cyan-500/40" />
-                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-[1px] bg-cyan-500/40" />
-             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Loading state */}
+      {!mapLoaded && (
+        <motion.div
+          className="absolute inset-0 flex items-center justify-center z-20 bg-black/40 backdrop-blur-sm"
+          initial={{ opacity: 1 }}
+          animate={{ opacity: 0 }}
+          transition={{ delay: 2, duration: 0.5 }}
+        >
+          <div className="text-center">
+            <div className="text-4xl mb-4">🛰️</div>
+            <p className="text-cyan-400 font-bold text-sm uppercase tracking-[0.2em] mb-2">
+              Initializing Live Map
+            </p>
+            <div className="flex gap-1 justify-center">
+              <motion.div
+                className="w-2 h-2 bg-cyan-400 rounded-full"
+                animate={{ scale: [0.5, 1, 0.5], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              />
+              <motion.div
+                className="w-2 h-2 bg-cyan-400 rounded-full"
+                animate={{ scale: [0.5, 1, 0.5], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+              />
+              <motion.div
+                className="w-2 h-2 bg-cyan-400 rounded-full"
+                animate={{ scale: [0.5, 1, 0.5], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }}
+              />
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* Map Info HUD */}
+      {mapLoaded && location && (
+        <motion.div
+          className="absolute bottom-8 left-8 z-20 pointer-events-none"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="bg-black/60 backdrop-blur-xl border border-cyan-500/30 rounded-lg px-4 py-3 text-xs text-cyan-400 font-mono">
+            <p className="font-bold">Coordinates: {location.latitude.toFixed(4)}°, {location.longitude.toFixed(4)}°</p>
+            <p className="text-white/60 mt-1">Accuracy: ±{Math.round(location.accuracy)}m</p>
+          </div>
+        </motion.div>
+      )}
 
       <style jsx global>{`
         @keyframes mapPulse {
-          0% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px rgba(34, 211, 238, 0.3); }
-          50% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 40px rgba(34, 211, 238, 0.6); }
-          100% { transform: scale(1); opacity: 0.8; box-shadow: 0 0 20px rgba(34, 211, 238, 0.3); }
+          0% { transform: scale(0.8); opacity: 0.4; }
+          50% { transform: scale(1); opacity: 0.8; }
+          100% { transform: scale(0.8); opacity: 0.4; }
         }
-        .mapboxgl-ctrl-bottom-right, .mapboxgl-ctrl-bottom-left { display: none !important; }
+        .leaflet-control-container { z-index: 15 !important; }
+        .custom-marker-icon { filter: drop-shadow(0 0 10px rgba(0, 200, 255, 0.5)) !important; }
       `}</style>
     </div>
   );
 }
 
-function addAQIHeatmapLayer(map: mapboxgl.Map, aqi: number) {
-  const getAQIColor = (aqi: number): string => {
-    if (aqi <= 50) return '#00F5D4';
-    if (aqi <= 100) return '#FFEB3B';
-    if (aqi <= 150) return '#FF9800';
-    if (aqi <= 200) return '#FF5252';
-    return '#9C27B0';
-  };
-
-  try {
-    if (map.getSource('aqi-source')) map.removeSource('aqi-source');
-
-    map.addSource('aqi-source', {
-      type: 'geojson',
-      data: {
-        type: 'FeatureCollection',
-        features: [{
-          type: 'Feature',
-          geometry: { type: 'Point', coordinates: [map.getCenter().lng, map.getCenter().lat] },
-          properties: { aqi }
-        }]
-      }
-    });
-
-    if (map.getLayer('aqi-layer')) map.removeLayer('aqi-layer');
-
-    map.addLayer({
-      id: 'aqi-layer',
-      type: 'heatmap',
-      source: 'aqi-source',
-      paint: {
-        'heatmap-weight': 1,
-        'heatmap-intensity': 3,
-        'heatmap-color': [
-          'interpolate', ['linear'], ['heatmap-density'],
-          0, 'rgba(0,0,0,0)',
-          0.2, 'rgba(34,211,238,0.2)',
-          0.4, 'rgba(34,211,238,0.4)',
-          0.6, getAQIColor(aqi),
-          1, getAQIColor(aqi)
-        ],
-        'heatmap-radius': 100,
-        'heatmap-opacity': 0.6
-      }
-    });
-  } catch (e) {
-    console.error('Heatmap Error:', e);
-  }
-}
+export default FullscreenLiveMap;
