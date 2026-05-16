@@ -672,9 +672,6 @@ export default function Home() {
         
         window.initializeSystem = initializeSystem;
 
-        const GEMINI_API_KEY = 'AIzaSyAy75y0nL4Cme9W3gRWZT9KKeDZeTkWlDA';
-        const GEMINI_URL = \`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=\${GEMINI_API_KEY}\`;
-
         window.sendToAria = async function() {
           const input = document.getElementById('aria-input');
           const msg = input.value.trim();
@@ -687,9 +684,9 @@ export default function Home() {
           input.value = '';
           chatDiv.scrollTop = chatDiv.scrollHeight;
           try {
-            const response = await fetch(GEMINI_URL, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({contents: [{role: 'user', parts: [{text: msg}]}]})});
+            const response = await fetch('/api/gemini', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({messages: [{role: 'user', parts: [{text: msg}]}]})});
             const data = await response.json();
-            const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Signal lost';
+            const reply = data.reply || 'Signal lost';
             const aiDiv = document.createElement('div');
             aiDiv.className = 'aria-msg aria-msg-ai';
             aiDiv.innerHTML = \`<div class="aria-avatar">◈</div><div class="aria-bubble"><div class="aria-sender">ARIA</div><div class="aria-text">\${reply}</div></div>\`;
