@@ -5,8 +5,12 @@ export default function Home() {
     <>
       <style jsx global>{`
         .landing {
-          height: 100vh; display: flex; flex-direction: column; justify-content: center;
-          align-items: center; position: relative; overflow: hidden;
+          height: 100vh; min-height: 100vh; display: flex; flex-direction: column; justify-content: center;
+          align-items: center; position: relative; overflow: visible;
+        }
+        
+        #dashboard {
+          overflow: visible;
         }
         .grid-overlay {
           position: absolute; inset: 0;
@@ -286,6 +290,43 @@ export default function Home() {
           .forecast-detail-grid { grid-template-columns: 1fr; }
         }
       `}</style>
+
+      <script dangerouslySetInnerHTML={{__html: `
+        const cursor = document.getElementById('cursor');
+        const cursorRing = document.getElementById('cursor-ring');
+
+        document.addEventListener('mousemove', (e) => {
+          cursor.style.left = e.clientX + 'px';
+          cursor.style.top = e.clientY + 'px';
+          cursorRing.style.left = e.clientX + 'px';
+          cursorRing.style.top = e.clientY + 'px';
+        });
+
+        document.addEventListener('mousedown', () => {
+          cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
+          cursorRing.style.width = '20px';
+          cursorRing.style.height = '20px';
+        });
+
+        document.addEventListener('mouseup', () => {
+          cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+          cursorRing.style.width = '32px';
+          cursorRing.style.height = '32px';
+        });
+
+        document.querySelectorAll('button, a, [onclick]').forEach(el => {
+          el.addEventListener('mouseenter', () => {
+            cursorRing.style.width = '48px';
+            cursorRing.style.height = '48px';
+            cursorRing.style.borderColor = 'rgba(0,229,255,0.9)';
+          });
+          el.addEventListener('mouseleave', () => {
+            cursorRing.style.width = '32px';
+            cursorRing.style.height = '32px';
+            cursorRing.style.borderColor = 'rgba(0,229,255,0.5)';
+          });
+        });
+      `}} />
 
       <div id="landing-page" className="landing">
         <div className="grid-overlay"></div>

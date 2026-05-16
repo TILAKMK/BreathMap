@@ -46,6 +46,7 @@ body {
   color: var(--text-bright);
   font-family: var(--font-body);
   overflow-x: hidden;
+  overflow-y: auto;
   cursor: none;
 }
 
@@ -57,7 +58,8 @@ body {
   pointer-events: none;
   z-index: 99999;
   box-shadow: var(--teal-glow);
-  transition: transform 0.1s;
+  transition: transform 0.05s;
+  transform: translate(-50%, -50%);
 }
 
 .cursor-ring {
@@ -82,6 +84,11 @@ body {
 .app-wrapper {
   position: relative;
   z-index: 1;
+}
+
+/* Cursor tracking */
+script {
+  display: none;
 }
 
 .glass {
