@@ -80,7 +80,7 @@ export default function Home() {
           position: relative; display: inline-flex; align-items: center; gap: 16px;
           padding: 18px 48px; background: transparent; border: 1px solid var(--teal); border-radius: 4px;
           color: var(--teal); font-family: var(--font-display); font-size: 0.85rem;
-          font-weight: 700; letter-spacing: 6px; cursor: none; overflow: hidden;
+          font-weight: 700; letter-spacing: 6px; cursor: none;
           transition: all 0.3s; margin-bottom: 20px;
         }
         .enter-btn:hover { background: var(--teal-dim); box-shadow: var(--teal-glow); transform: translateY(-2px); }
@@ -122,7 +122,7 @@ export default function Home() {
         .nav-aqi-badge { text-align: center; padding: 4px 16px; border: 1px solid var(--border); border-radius: 4px; }
         .nav-aqi-val { font-family: var(--font-display); font-size: 1.4rem; font-weight: 900; color: var(--teal); }
 
-        .s-map { position: relative; height: 100vh; padding: 0; overflow: hidden; }
+        .s-map { position: relative; height: 100vh; padding: 0; }
         .map-container { width: 100%; height: 100%; position: absolute; inset: 0; background: linear-gradient(135deg, #010c14 0%, #041220 100%); }
         .map-panel {
           position: absolute; top: 80px; width: 300px; z-index: 10;
@@ -292,40 +292,31 @@ export default function Home() {
       `}</style>
 
       <script dangerouslySetInnerHTML={{__html: `
-        const cursor = document.getElementById('cursor');
-        const cursorRing = document.getElementById('cursor-ring');
+        (function() {
+          const cursor = document.getElementById('cursor');
+          const ring = document.getElementById('cursor-ring');
+          
+          if (!cursor || !ring) return;
 
-        document.addEventListener('mousemove', (e) => {
-          cursor.style.left = e.clientX + 'px';
-          cursor.style.top = e.clientY + 'px';
-          cursorRing.style.left = e.clientX + 'px';
-          cursorRing.style.top = e.clientY + 'px';
-        });
+          let mouseX = 0, mouseY = 0;
 
-        document.addEventListener('mousedown', () => {
-          cursor.style.transform = 'translate(-50%, -50%) scale(1.5)';
-          cursorRing.style.width = '20px';
-          cursorRing.style.height = '20px';
-        });
+          window.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+            ring.style.left = mouseX + 'px';
+            ring.style.top = mouseY + 'px';
+          }, { passive: true });
 
-        document.addEventListener('mouseup', () => {
-          cursor.style.transform = 'translate(-50%, -50%) scale(1)';
-          cursorRing.style.width = '32px';
-          cursorRing.style.height = '32px';
-        });
-
-        document.querySelectorAll('button, a, [onclick]').forEach(el => {
-          el.addEventListener('mouseenter', () => {
-            cursorRing.style.width = '48px';
-            cursorRing.style.height = '48px';
-            cursorRing.style.borderColor = 'rgba(0,229,255,0.9)';
+          window.addEventListener('mousedown', function() {
+            cursor.style.transform = 'translate(-50%, -50%) scale(2)';
           });
-          el.addEventListener('mouseleave', () => {
-            cursorRing.style.width = '32px';
-            cursorRing.style.height = '32px';
-            cursorRing.style.borderColor = 'rgba(0,229,255,0.5)';
+
+          window.addEventListener('mouseup', function() {
+            cursor.style.transform = 'translate(-50%, -50%) scale(1)';
           });
-        });
+        })();
       `}} />
 
       <div id="landing-page" className="landing">

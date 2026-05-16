@@ -23,8 +23,8 @@ export default function RootLayout({
       </head>
       <body>
         <canvas id="bg-canvas"></canvas>
-        <div className="cursor"></div>
-        <div className="cursor-ring"></div>
+        <div id="cursor"></div>
+        <div id="cursor-ring"></div>
         <div className="app-wrapper">
           {children}
         </div>
