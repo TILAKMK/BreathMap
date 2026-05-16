@@ -1,6 +1,354 @@
 'use client';
+import { useEffect } from 'react';
 
 export default function Home() {
+  
+  useEffect(() => {
+
+        (function() {
+          const cursor = document.getElementById('cursor');
+          const ring = document.getElementById('cursor-ring');
+          
+          if (!cursor || !ring) return;
+
+          let mouseX = 0, mouseY = 0;
+
+          window.addEventListener('mousemove', function(e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+            ring.style.left = mouseX + 'px';
+            ring.style.top = mouseY + 'px';
+          }, { passive: true });
+
+          window.addEventListener('mousedown', function() {
+            cursor.style.transform = 'translate(-50%, -50%) scale(2)';
+          });
+
+          window.addEventListener('mouseup', function() {
+            cursor.style.transform = 'translate(-50%, -50%) scale(1)';
+          });
+        })();
+      
+
+        window.appState = {aqi: 0, pm25: 0, temp: 0, humidity: 0, wind: 0, o2: 100, city: 'Detecting...', country: 'India', lat: 12.2958, lon: 76.6394, timestamp: new Date()};
+        
+        // CANVAS RENDERING FUNCTIONS
+        function drawRadar(canvasId, color = '#00e5ff') {
+          const canvas = document.getElementById(canvasId);
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
+          const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
+          ctx.clearRect(0, 0, w, h);
+          ctx.strokeStyle = color + '40'; ctx.lineWidth = 1;
+          for (let r = 20; r < Math.max(w,h)/2; r += 20) {
+            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
+            ctx.stroke();
+          }
+          for (let a = 0; a < 8; a++) {
+            const ang = (a / 8) * Math.PI * 2;
+            ctx.beginPath(); ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(ang) * (w/2-10), cy + Math.sin(ang) * (h/2-10));
+            ctx.stroke();
+          }
+          ctx.fillStyle = color + '60'; ctx.beginPath();
+          ctx.arc(cx, cy, 15, 0, Math.PI*2);
+          ctx.fill();
+        }
+
+        function drawWaveform(canvasId, aqi = 50) {
+          const canvas = document.getElementById(canvasId);
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
+          const w = canvas.width, h = canvas.height;
+          ctx.clearRect(0, 0, w, h);
+          const color = aqi > 150 ? '#ff1744' : aqi > 100 ? '#ff9100' : aqi > 50 ? '#00e5ff' : '#39ff14';
+          ctx.strokeStyle = color; ctx.lineWidth = 2;
+          ctx.beginPath();
+          for (let i = 0; i < w; i++) {
+            const t = (i / w) * Math.PI * 4 + (Date.now() / 500);
+            const y = h/2 + Math.sin(t) * (h/3) * (aqi/100);
+            if (i === 0) ctx.moveTo(i, y);
+            else ctx.lineTo(i, y);
+          }
+          ctx.stroke();
+        }
+
+        function drawChart(canvasId, data = [], color = '#00e5ff') {
+          const canvas = document.getElementById(canvasId);
+          if (!canvas) return;
+          const ctx = canvas.getContext('2d');
+          const w = canvas.width, h = canvas.height;
+          ctx.clearRect(0, 0, w, h);
+          if (data.length === 0) return;
+          const max = Math.max(...data);
+          ctx.strokeStyle = color; ctx.lineWidth = 2;
+          ctx.beginPath();
+          const step = w / (data.length - 1);
+          data.forEach((val, i) => {
+            const x = i * step;
+            const y = h - (val / max) * (h - 20);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          });
+          ctx.stroke();
+          ctx.fillStyle = color + '20'; ctx.fill();
+        }
+
+        // API DATA BINDING
+        async function fetchEnvironmentalData() {
+          try {
+            const response = await fetch(`/api/aqi?lat=${window.appState.lat}&lon=${window.appState.lon}`);
+            if (!response.ok) throw new Error('API failed');
+            const data = await response.json();
+            window.appState.aqi = data.aqi || 50;
+            window.appState.pm25 = data.pm25 || 25;
+            window.appState.temp = data.temp || 28;
+            window.appState.humidity = data.humidity || 65;
+            window.appState.wind = data.wind || 12;
+            window.appState.city = data.city || 'Unknown';
+          } catch (e) {
+            console.warn('Using mock data:', e);
+            window.appState.aqi = Math.floor(Math.random() * 200);
+            window.appState.pm25 = Math.floor(Math.random() * 50);
+            window.appState.temp = 25 + Math.random() * 10;
+            window.appState.humidity = 40 + Math.random() * 50;
+            window.appState.wind = 5 + Math.random() * 20;
+          }
+          updateUIWithData();
+        }
+
+        function updateUIWithData() {
+          document.getElementById('nav-city').textContent = window.appState.city;
+          document.getElementById('nav-aqi').textContent = Math.round(window.appState.aqi);
+          document.getElementById('m-aqi').textContent = Math.round(window.appState.aqi);
+          document.getElementById('m-pm25').textContent = Math.round(window.appState.pm25);
+          document.getElementById('m-temp').textContent = Math.round(window.appState.temp);
+          document.getElementById('m-humidity').textContent = Math.round(window.appState.humidity);
+          document.getElementById('m-wind').textContent = Math.round(window.appState.wind);
+          document.getElementById('m-o2').textContent = '98';
+          
+          document.getElementById('tc-v-aqi').textContent = Math.round(window.appState.aqi);
+          document.getElementById('tc-v-pm25').textContent = Math.round(window.appState.pm25);
+          document.getElementById('tc-v-humidity').textContent = Math.round(window.appState.humidity);
+          document.getElementById('tc-v-temp').textContent = Math.round(window.appState.temp);
+          document.getElementById('tc-v-wind').textContent = Math.round(window.appState.wind);
+          document.getElementById('tc-v-o2').textContent = '98';
+          
+          document.getElementById('bar-aqi').style.width = Math.min(100, (window.appState.aqi/300)*100) + '%';
+          document.getElementById('bar-pm25').style.width = Math.min(100, (window.appState.pm25/100)*100) + '%';
+          document.getElementById('bar-temp').style.width = Math.min(100, (window.appState.temp/50)*100) + '%';
+          document.getElementById('bar-humidity').style.width = window.appState.humidity + '%';
+          document.getElementById('bar-wind').style.width = Math.min(100, (window.appState.wind/40)*100) + '%';
+          document.getElementById('bar-o2').style.width = '98%';
+          
+          // Animate bar charts in telemetry cards
+          const animateBarChart = (containerId, percent) => {
+            const container = document.getElementById(containerId);
+            if (container) {
+              const items = container.querySelectorAll('.tc-bar-item');
+              items.forEach((item, idx) => {
+                const h = Math.random() * 100;
+                item.style.height = h + '%';
+              });
+            }
+          };
+          animateBarChart('tc-bars-aqi', window.appState.aqi);
+          animateBarChart('tc-bars-pm25', window.appState.pm25);
+          animateBarChart('tc-bars-humidity', window.appState.humidity);
+          animateBarChart('tc-bars-temp', window.appState.temp);
+          animateBarChart('tc-bars-wind', window.appState.wind);
+          animateBarChart('tc-bars-o2', 98);
+          
+          drawRadar('radar-canvas', window.appState.aqi > 150 ? '#ff1744' : window.appState.aqi > 100 ? '#ff9100' : '#00e5ff');
+          drawRadar('big-radar', window.appState.aqi > 150 ? '#ff1744' : window.appState.aqi > 100 ? '#ff9100' : '#00e5ff');
+          drawWaveform('waveform-canvas', window.appState.aqi);
+          drawChart('chart-aqi', [window.appState.aqi * 0.8, window.appState.aqi, window.appState.aqi * 0.9, window.appState.aqi * 0.7], '#00e5ff');
+          drawChart('chart-co2', [420, 435, 430, 445], '#39ff14');
+          drawChart('chart-noise', [55, 65, 60, 70], '#ff9100');
+          drawChart('forecast-canvas', [window.appState.aqi * 0.95, window.appState.aqi, window.appState.aqi * 1.05, window.appState.aqi * 0.98], '#00e5ff');
+          
+          const forecastAqi = Math.round(window.appState.aqi * 0.98);
+          document.getElementById('fd-forecast').textContent = forecastAqi;
+          document.getElementById('rs-freq').textContent = (1.0 + Math.random()).toFixed(1);
+          document.getElementById('rs-amp').textContent = (-45 - Math.random() * 10).toFixed(0);
+        }
+
+        // GEOLOCATION
+        function requestGeolocation() {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                window.appState.lat = pos.coords.latitude;
+                window.appState.lon = pos.coords.longitude;
+                document.getElementById('map-coords').textContent = `COORDINATES: ${window.appState.lat.toFixed(2)}°, ${window.appState.lon.toFixed(2)}°`;
+                fetchEnvironmentalData();
+              },
+              (err) => {
+                console.warn('Geolocation error, using defaults');
+                fetchEnvironmentalData();
+              },
+              { timeout: 8000 }
+            );
+          } else {
+            fetchEnvironmentalData();
+          }
+        }
+
+        // MICROPHONE WAVEFORM
+        async function requestMicrophoneAccess() {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            function animate() {
+              analyser.getByteFrequencyData(dataArray);
+              drawWaveform('waveform-canvas', window.appState.aqi);
+              requestAnimationFrame(animate);
+            }
+            animate();
+          } catch (e) {
+            console.warn('Microphone access denied or unavailable');
+          }
+        }
+
+        function updateSystemClock() {
+          const now = new Date().toLocaleTimeString();
+          const sysTime = document.getElementById('sys-time');
+          const navTime = document.getElementById('nav-time');
+          if (sysTime) sysTime.textContent = now;
+          if (navTime) navTime.textContent = now;
+          setTimeout(updateSystemClock, 1000);
+        }
+
+        async function initializeSystem() {
+          // 1. Hide landing page, show dashboard
+          const landing = document.getElementById('landing-page');
+          const dashboard = document.getElementById('dashboard');
+          
+          if (!landing || !dashboard) {
+            console.error('landing or dashboard element not found');
+            return;
+          }
+
+          landing.style.display = 'none';
+          dashboard.style.display = 'block';
+          dashboard.classList.remove('hidden');
+          dashboard.classList.add('fade-in');
+
+          // 2. Request geolocation
+          try {
+            const pos = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                timeout: 8000,
+                enableHighAccuracy: true
+              });
+            });
+            window.appState.lat = pos.coords.latitude;
+            window.appState.lon = pos.coords.longitude;
+            document.getElementById('map-coords').textContent = `COORDINATES: ${window.appState.lat.toFixed(2)}°, ${window.appState.lon.toFixed(2)}°`;
+          } catch (e) {
+            // Fallback to Mysuru
+            window.appState.lat = 12.2958;
+            window.appState.lon = 76.6394;
+            document.getElementById('map-coords').textContent = 'COORDINATES: 12.30°, 76.64°';
+            console.log('Geolocation denied, using fallback');
+          }
+
+          // 3. Request microphone
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            function animate() {
+              analyser.getByteFrequencyData(dataArray);
+              drawWaveform('waveform-canvas', window.appState.aqi);
+              requestAnimationFrame(animate);
+            }
+            animate();
+          } catch (e) {
+            console.log('Mic denied, using mock waveform');
+          }
+
+          // 4. Fetch data and init everything
+          await fetchEnvironmentalData();
+          updateSystemClock();
+          drawRadar('radar-canvas', '#00e5ff');
+          drawRadar('big-radar', '#00e5ff');
+          drawChart('chart-aqi', [window.appState.aqi * 0.8, window.appState.aqi, window.appState.aqi * 0.9], '#00e5ff');
+          drawChart('chart-co2', [420, 435, 430, 445], '#39ff14');
+          drawChart('chart-noise', [55, 65, 60, 70], '#ff9100');
+          drawChart('forecast-canvas', [window.appState.aqi * 0.95, window.appState.aqi, window.appState.aqi * 1.05], '#00e5ff');
+
+          // 5. Start refresh loop
+          setInterval(fetchEnvironmentalData, 60000);
+        }
+        
+        window.initializeSystem = initializeSystem;
+
+        window.sendToAria = async function() {
+          const input = document.getElementById('aria-input');
+          const msg = input.value.trim();
+          if (!msg) return;
+          const chatDiv = document.getElementById('aria-chat');
+          const userDiv = document.createElement('div');
+          userDiv.className = 'aria-msg aria-msg-user';
+          userDiv.innerHTML = `<div class="aria-bubble user-bubble"><div class="aria-text">${msg}</div></div><div class="aria-avatar user-av">U</div>`;
+          chatDiv.appendChild(userDiv);
+          input.value = '';
+          chatDiv.scrollTop = chatDiv.scrollHeight;
+          try {
+            const response = await fetch('/api/gemini', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({messages: [{role: 'user', parts: [{text: msg}]}]})});
+            const data = await response.json();
+            const reply = data.reply || 'Signal lost';
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'aria-msg aria-msg-ai';
+            aiDiv.innerHTML = `<div class="aria-avatar">◈</div><div class="aria-bubble"><div class="aria-sender">ARIA</div><div class="aria-text">${reply}</div></div>`;
+            chatDiv.appendChild(aiDiv);
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+          } catch(e) {
+            console.error('ARIA error:', e);
+          }
+        };
+
+        window.quickAsk = function(msg) {
+          document.getElementById('aria-input').value = msg;
+          (window as any).sendToAria?.();
+        };
+
+        // Setup button click handler
+        function setupButtonHandler() {
+          const btn = document.getElementById('enter-btn');
+          if (btn) {
+            btn.addEventListener('click', function(e) {
+              e.preventDefault();
+              if (typeof window.initializeSystem === 'function') {
+                window.initializeSystem();
+              }
+            });
+          }
+        }
+
+        // Try to setup immediately
+        setupButtonHandler();
+        
+        // Also try after a small delay
+        setTimeout(setupButtonHandler, 100);
+        setTimeout(setupButtonHandler, 500);
+
+        updateSystemClock();
+      
+  }, []);
+
   return (
     <>
       <style jsx global>{`
@@ -291,33 +639,7 @@ export default function Home() {
         }
       `}</style>
 
-      <script dangerouslySetInnerHTML={{__html: `
-        (function() {
-          const cursor = document.getElementById('cursor');
-          const ring = document.getElementById('cursor-ring');
-          
-          if (!cursor || !ring) return;
-
-          let mouseX = 0, mouseY = 0;
-
-          window.addEventListener('mousemove', function(e) {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-            cursor.style.left = mouseX + 'px';
-            cursor.style.top = mouseY + 'px';
-            ring.style.left = mouseX + 'px';
-            ring.style.top = mouseY + 'px';
-          }, { passive: true });
-
-          window.addEventListener('mousedown', function() {
-            cursor.style.transform = 'translate(-50%, -50%) scale(2)';
-          });
-
-          window.addEventListener('mouseup', function() {
-            cursor.style.transform = 'translate(-50%, -50%) scale(1)';
-          });
-        })();
-      `}} />
+      
 
       <div id="landing-page" className="landing">
         <div className="grid-overlay"></div>
@@ -341,7 +663,7 @@ export default function Home() {
             <div className="pill"><span className="pill-dot"></span>AI CORE ONLINE</div>
             <div className="pill"><span className="pill-dot amber"></span>AWAITING LOCATION</div>
           </div>
-          <button id="enter-btn" style={{position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '16px', padding: '18px 48px', background: 'transparent', border: '1px solid var(--teal)', borderRadius: '4px', color: 'var(--teal)', fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '6px', cursor: 'none', transition: 'all 0.3s', marginBottom: '20px'}} onClick={() => (window as any).initializeSystem?.()} onMouseDown={() => console.log('Button clicked')}>
+          <button id="enter-btn" style={{position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '16px', padding: '18px 48px', background: 'transparent', border: '1px solid var(--teal)', borderRadius: '4px', color: 'var(--teal)', fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '6px', cursor: 'none', transition: 'all 0.3s', marginBottom: '20px'}} onClick={(e) => { e.preventDefault(); const w = window as unknown as { initializeSystem?: () => void }; if (typeof w.initializeSystem === "function") w.initializeSystem(); }} onMouseDown={() => console.log('Button clicked')}>
             <span>INITIALIZE SYSTEM</span>
             <span>→</span>
             <div className="btn-scan"></div>
@@ -390,7 +712,7 @@ export default function Home() {
               <div className="anomaly-item"><span className="an-id">AN-01</span><span>2.4km</span><span className="an-level low">LOW</span></div>
               <div className="anomaly-item"><span className="an-id">AN-02</span><span>5.1km</span><span className="an-level elevated">ELEVATED</span></div>
             </div>
-            <button className="scan-btn" onClick={() => (window as any).initializeSystem?.()}>DEEP SCAN</button>
+            <button className="scan-btn" onClick={(e) => { e.preventDefault(); const w = window as unknown as { initializeSystem?: () => void }; if (typeof w.initializeSystem === "function") w.initializeSystem(); }}>DEEP SCAN</button>
           </div>
           <div className="map-bottom-bar"><span>DATA SOURCE: SENTINEL-5P</span><span>UPDATE: 60S</span><span id="map-coords">COORDINATES: 12.30°, 76.64°</span><span id="map-risk" className="risk-badge">SCANNING...</span></div>
         </section>
@@ -405,325 +727,52 @@ export default function Home() {
 
         <section><div style={{fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '5px', color: 'var(--text-dim)', marginBottom: '20px'}}>06 / PREDICTIVE FORECASTING</div><div style={{marginBottom: '60px'}}><h2 style={{fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900, letterSpacing: '6px', color: 'var(--text-bright)', marginBottom: '12px'}}>PREDICTIVE FORECASTING</h2><p style={{fontFamily: 'var(--font-mono)', fontSize: '0.65rem', letterSpacing: '4px', color: 'var(--text-dim)'}}>AI-POWERED ATMOSPHERIC MODEL V9.2</p></div><div className="forecast-hero glass"><canvas id="forecast-canvas" height="200" style={{width: '100%', display: 'block', marginBottom: '16px'}}></canvas><div style={{textAlign: 'center'}}><div style={{fontFamily: 'var(--font-display)', fontSize: '2rem', fontWeight: 700, color: 'var(--teal)', letterSpacing: '4px'}} id="fr-trend">STABLE PATTERN</div><div style={{fontFamily: 'var(--font-mono)', fontSize: '0.6rem', color: 'var(--text-dim)', letterSpacing: '2px', marginTop: '6px'}}>FORECAST CONFIDENCE: 94.2%</div></div></div><div className="forecast-detail-grid"><div className="fd-card glass"><div className="fd-label">30-MIN FORECAST</div><div className="fd-val" id="fd-forecast">--</div><div className="fd-unit">AQI</div></div><div className="fd-card glass"><div className="fd-label">ANOMALY STATUS</div><div className="fd-val bio" id="fd-anomaly">NORMAL</div><div className="fd-sub">All patterns within tolerance</div></div><div className="fd-card glass"><div className="fd-label">ACTIVITY ADVISORY</div><div className="activity-row"><span>🏃</span><span>Running</span><span className="act-safe bio">SAFE</span></div><div className="activity-row"><span>🚴</span><span>Cycling</span><span className="act-safe bio">SAFE</span></div><div className="activity-row"><span>🌳</span><span>Outdoor</span><span className="act-safe bio">SAFE</span></div></div></div></section>
 
+        <section className="s-aria">
+          <div style={{fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '5px', color: 'var(--text-dim)', marginBottom: '20px'}}>07 / ARIA NEURAL LINK</div>
+          <div style={{marginBottom: '60px'}}>
+            <h2 style={{fontFamily: 'var(--font-display)', fontSize: 'clamp(2rem, 5vw, 3.5rem)', fontWeight: 900, letterSpacing: '6px', color: 'var(--text-bright)', marginBottom: '12px'}}>ARIA INTELLIGENCE</h2>
+            <p style={{fontFamily: 'var(--font-mono)', fontSize: '0.65rem', letterSpacing: '4px', color: 'var(--text-dim)'}}>ATMOSPHERIC RESEARCH & INTELLIGENCE ASSISTANT</p>
+          </div>
+
+          <div className="aria-wrap">
+            <div id="aria-chat" className="aria-chat glass">
+              <div className="aria-msg">
+                <div className="aria-avatar">◈</div>
+                <div className="aria-bubble">
+                  <div className="aria-sender">ARIA</div>
+                  <div className="aria-text">Neural link established. I am monitoring the atmospheric telemetry. How can I assist you?</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="aria-input-wrap glass">
+              <div className="aria-input-left">
+                <span className="aria-icon">◈</span>
+                <input 
+                  type="text" 
+                  id="aria-input" 
+                  className="aria-input" 
+                  placeholder="Ask ARIA about the current atmospheric conditions..." 
+                  onKeyDown={(e) => e.key === 'Enter' && (window as any).sendToAria?.()}
+                />
+              </div>
+              <button className="aria-send-btn" onClick={() => (window as any).sendToAria?.()}>
+                TRANSMIT →
+              </button>
+            </div>
+            
+            <div className="aria-quick-btns">
+              <button className="aria-quick" onClick={() => (window as any).quickAsk?.('What is the current air quality?')}>Current AQI?</button>
+              <button className="aria-quick" onClick={() => (window as any).quickAsk?.('Are there any anomalies nearby?')}>Scan for anomalies</button>
+              <button className="aria-quick" onClick={() => (window as any).quickAsk?.('Is it safe to run outside right now?')}>Safe to run?</button>
+            </div>
+          </div>
+        </section>
+
         <footer className="site-footer glass"><div className="footer-grid"><div><div className="footer-logo">◈ BREATHMAP</div></div></div><div className="footer-bar">BREATHMAP © 2025 · ALL DATA REAL-TIME</div></footer>
       </div>
 
-      <script dangerouslySetInnerHTML={{__html: `
-        window.appState = {aqi: 0, pm25: 0, temp: 0, humidity: 0, wind: 0, o2: 100, city: 'Detecting...', country: 'India', lat: 12.2958, lon: 76.6394, timestamp: new Date()};
-        
-        // CANVAS RENDERING FUNCTIONS
-        function drawRadar(canvasId, color = '#00e5ff') {
-          const canvas = document.getElementById(canvasId);
-          if (!canvas) return;
-          const ctx = canvas.getContext('2d');
-          const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
-          ctx.clearRect(0, 0, w, h);
-          ctx.strokeStyle = color + '40'; ctx.lineWidth = 1;
-          for (let r = 20; r < Math.max(w,h)/2; r += 20) {
-            ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2);
-            ctx.stroke();
-          }
-          for (let a = 0; a < 8; a++) {
-            const ang = (a / 8) * Math.PI * 2;
-            ctx.beginPath(); ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + Math.cos(ang) * (w/2-10), cy + Math.sin(ang) * (h/2-10));
-            ctx.stroke();
-          }
-          ctx.fillStyle = color + '60'; ctx.beginPath();
-          ctx.arc(cx, cy, 15, 0, Math.PI*2);
-          ctx.fill();
-        }
-
-        function drawWaveform(canvasId, aqi = 50) {
-          const canvas = document.getElementById(canvasId);
-          if (!canvas) return;
-          const ctx = canvas.getContext('2d');
-          const w = canvas.width, h = canvas.height;
-          ctx.clearRect(0, 0, w, h);
-          const color = aqi > 150 ? '#ff1744' : aqi > 100 ? '#ff9100' : aqi > 50 ? '#00e5ff' : '#39ff14';
-          ctx.strokeStyle = color; ctx.lineWidth = 2;
-          ctx.beginPath();
-          for (let i = 0; i < w; i++) {
-            const t = (i / w) * Math.PI * 4 + (Date.now() / 500);
-            const y = h/2 + Math.sin(t) * (h/3) * (aqi/100);
-            if (i === 0) ctx.moveTo(i, y);
-            else ctx.lineTo(i, y);
-          }
-          ctx.stroke();
-        }
-
-        function drawChart(canvasId, data = [], color = '#00e5ff') {
-          const canvas = document.getElementById(canvasId);
-          if (!canvas) return;
-          const ctx = canvas.getContext('2d');
-          const w = canvas.width, h = canvas.height;
-          ctx.clearRect(0, 0, w, h);
-          if (data.length === 0) return;
-          const max = Math.max(...data);
-          ctx.strokeStyle = color; ctx.lineWidth = 2;
-          ctx.beginPath();
-          const step = w / (data.length - 1);
-          data.forEach((val, i) => {
-            const x = i * step;
-            const y = h - (val / max) * (h - 20);
-            if (i === 0) ctx.moveTo(x, y);
-            else ctx.lineTo(x, y);
-          });
-          ctx.stroke();
-          ctx.fillStyle = color + '20'; ctx.fill();
-        }
-
-        // API DATA BINDING
-        async function fetchEnvironmentalData() {
-          try {
-            const response = await fetch(\`/api/aqi?lat=\${window.appState.lat}&lon=\${window.appState.lon}\`);
-            if (!response.ok) throw new Error('API failed');
-            const data = await response.json();
-            window.appState.aqi = data.aqi || 50;
-            window.appState.pm25 = data.pm25 || 25;
-            window.appState.temp = data.temp || 28;
-            window.appState.humidity = data.humidity || 65;
-            window.appState.wind = data.wind || 12;
-            window.appState.city = data.city || 'Unknown';
-          } catch (e) {
-            console.warn('Using mock data:', e);
-            window.appState.aqi = Math.floor(Math.random() * 200);
-            window.appState.pm25 = Math.floor(Math.random() * 50);
-            window.appState.temp = 25 + Math.random() * 10;
-            window.appState.humidity = 40 + Math.random() * 50;
-            window.appState.wind = 5 + Math.random() * 20;
-          }
-          updateUIWithData();
-        }
-
-        function updateUIWithData() {
-          document.getElementById('nav-city').textContent = window.appState.city;
-          document.getElementById('nav-aqi').textContent = Math.round(window.appState.aqi);
-          document.getElementById('m-aqi').textContent = Math.round(window.appState.aqi);
-          document.getElementById('m-pm25').textContent = Math.round(window.appState.pm25);
-          document.getElementById('m-temp').textContent = Math.round(window.appState.temp);
-          document.getElementById('m-humidity').textContent = Math.round(window.appState.humidity);
-          document.getElementById('m-wind').textContent = Math.round(window.appState.wind);
-          document.getElementById('m-o2').textContent = '98';
-          
-          document.getElementById('tc-v-aqi').textContent = Math.round(window.appState.aqi);
-          document.getElementById('tc-v-pm25').textContent = Math.round(window.appState.pm25);
-          document.getElementById('tc-v-humidity').textContent = Math.round(window.appState.humidity);
-          document.getElementById('tc-v-temp').textContent = Math.round(window.appState.temp);
-          document.getElementById('tc-v-wind').textContent = Math.round(window.appState.wind);
-          document.getElementById('tc-v-o2').textContent = '98';
-          
-          document.getElementById('bar-aqi').style.width = Math.min(100, (window.appState.aqi/300)*100) + '%';
-          document.getElementById('bar-pm25').style.width = Math.min(100, (window.appState.pm25/100)*100) + '%';
-          document.getElementById('bar-temp').style.width = Math.min(100, (window.appState.temp/50)*100) + '%';
-          document.getElementById('bar-humidity').style.width = window.appState.humidity + '%';
-          document.getElementById('bar-wind').style.width = Math.min(100, (window.appState.wind/40)*100) + '%';
-          document.getElementById('bar-o2').style.width = '98%';
-          
-          // Animate bar charts in telemetry cards
-          const animateBarChart = (containerId, percent) => {
-            const container = document.getElementById(containerId);
-            if (container) {
-              const items = container.querySelectorAll('.tc-bar-item');
-              items.forEach((item, idx) => {
-                const h = Math.random() * 100;
-                item.style.height = h + '%';
-              });
-            }
-          };
-          animateBarChart('tc-bars-aqi', window.appState.aqi);
-          animateBarChart('tc-bars-pm25', window.appState.pm25);
-          animateBarChart('tc-bars-humidity', window.appState.humidity);
-          animateBarChart('tc-bars-temp', window.appState.temp);
-          animateBarChart('tc-bars-wind', window.appState.wind);
-          animateBarChart('tc-bars-o2', 98);
-          
-          drawRadar('radar-canvas', window.appState.aqi > 150 ? '#ff1744' : window.appState.aqi > 100 ? '#ff9100' : '#00e5ff');
-          drawRadar('big-radar', window.appState.aqi > 150 ? '#ff1744' : window.appState.aqi > 100 ? '#ff9100' : '#00e5ff');
-          drawWaveform('waveform-canvas', window.appState.aqi);
-          drawChart('chart-aqi', [window.appState.aqi * 0.8, window.appState.aqi, window.appState.aqi * 0.9, window.appState.aqi * 0.7], '#00e5ff');
-          drawChart('chart-co2', [420, 435, 430, 445], '#39ff14');
-          drawChart('chart-noise', [55, 65, 60, 70], '#ff9100');
-          drawChart('forecast-canvas', [window.appState.aqi * 0.95, window.appState.aqi, window.appState.aqi * 1.05, window.appState.aqi * 0.98], '#00e5ff');
-          
-          const forecastAqi = Math.round(window.appState.aqi * 0.98);
-          document.getElementById('fd-forecast').textContent = forecastAqi;
-          document.getElementById('rs-freq').textContent = (1.0 + Math.random()).toFixed(1);
-          document.getElementById('rs-amp').textContent = (-45 - Math.random() * 10).toFixed(0);
-        }
-
-        // GEOLOCATION
-        function requestGeolocation() {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-              (pos) => {
-                window.appState.lat = pos.coords.latitude;
-                window.appState.lon = pos.coords.longitude;
-                document.getElementById('map-coords').textContent = \`COORDINATES: \${window.appState.lat.toFixed(2)}°, \${window.appState.lon.toFixed(2)}°\`;
-                fetchEnvironmentalData();
-              },
-              (err) => {
-                console.warn('Geolocation error, using defaults');
-                fetchEnvironmentalData();
-              },
-              { timeout: 8000 }
-            );
-          } else {
-            fetchEnvironmentalData();
-          }
-        }
-
-        // MICROPHONE WAVEFORM
-        async function requestMicrophoneAccess() {
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({audio: true});
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const analyser = audioCtx.createAnalyser();
-            const source = audioCtx.createMediaStreamSource(stream);
-            source.connect(analyser);
-            analyser.fftSize = 256;
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
-            function animate() {
-              analyser.getByteFrequencyData(dataArray);
-              drawWaveform('waveform-canvas', window.appState.aqi);
-              requestAnimationFrame(animate);
-            }
-            animate();
-          } catch (e) {
-            console.warn('Microphone access denied or unavailable');
-          }
-        }
-
-        function updateSystemClock() {
-          const now = new Date().toLocaleTimeString();
-          const sysTime = document.getElementById('sys-time');
-          const navTime = document.getElementById('nav-time');
-          if (sysTime) sysTime.textContent = now;
-          if (navTime) navTime.textContent = now;
-          setTimeout(updateSystemClock, 1000);
-        }
-
-        async function initializeSystem() {
-          // 1. Hide landing page, show dashboard
-          const landing = document.getElementById('landing-page');
-          const dashboard = document.getElementById('dashboard');
-          
-          if (!landing || !dashboard) {
-            console.error('landing or dashboard element not found');
-            return;
-          }
-
-          landing.style.display = 'none';
-          dashboard.style.display = 'block';
-          dashboard.classList.remove('hidden');
-          dashboard.classList.add('fade-in');
-
-          // 2. Request geolocation
-          try {
-            const pos = await new Promise((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                timeout: 8000,
-                enableHighAccuracy: true
-              });
-            });
-            window.appState.lat = pos.coords.latitude;
-            window.appState.lon = pos.coords.longitude;
-            document.getElementById('map-coords').textContent = \`COORDINATES: \${window.appState.lat.toFixed(2)}°, \${window.appState.lon.toFixed(2)}°\`;
-          } catch (e) {
-            // Fallback to Mysuru
-            window.appState.lat = 12.2958;
-            window.appState.lon = 76.6394;
-            document.getElementById('map-coords').textContent = 'COORDINATES: 12.30°, 76.64°';
-            console.log('Geolocation denied, using fallback');
-          }
-
-          // 3. Request microphone
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            const analyser = audioCtx.createAnalyser();
-            const source = audioCtx.createMediaStreamSource(stream);
-            source.connect(analyser);
-            analyser.fftSize = 256;
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
-            function animate() {
-              analyser.getByteFrequencyData(dataArray);
-              drawWaveform('waveform-canvas', window.appState.aqi);
-              requestAnimationFrame(animate);
-            }
-            animate();
-          } catch (e) {
-            console.log('Mic denied, using mock waveform');
-          }
-
-          // 4. Fetch data and init everything
-          await fetchEnvironmentalData();
-          updateSystemClock();
-          drawRadar('radar-canvas', '#00e5ff');
-          drawRadar('big-radar', '#00e5ff');
-          drawChart('chart-aqi', [window.appState.aqi * 0.8, window.appState.aqi, window.appState.aqi * 0.9], '#00e5ff');
-          drawChart('chart-co2', [420, 435, 430, 445], '#39ff14');
-          drawChart('chart-noise', [55, 65, 60, 70], '#ff9100');
-          drawChart('forecast-canvas', [window.appState.aqi * 0.95, window.appState.aqi, window.appState.aqi * 1.05], '#00e5ff');
-
-          // 5. Start refresh loop
-          setInterval(fetchEnvironmentalData, 60000);
-        }
-        
-        window.initializeSystem = initializeSystem;
-
-        window.sendToAria = async function() {
-          const input = document.getElementById('aria-input');
-          const msg = input.value.trim();
-          if (!msg) return;
-          const chatDiv = document.getElementById('aria-chat');
-          const userDiv = document.createElement('div');
-          userDiv.className = 'aria-msg aria-msg-user';
-          userDiv.innerHTML = \`<div class="aria-bubble user-bubble"><div class="aria-text">\${msg}</div></div><div class="aria-avatar user-av">U</div>\`;
-          chatDiv.appendChild(userDiv);
-          input.value = '';
-          chatDiv.scrollTop = chatDiv.scrollHeight;
-          try {
-            const response = await fetch('/api/gemini', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({messages: [{role: 'user', parts: [{text: msg}]}]})});
-            const data = await response.json();
-            const reply = data.reply || 'Signal lost';
-            const aiDiv = document.createElement('div');
-            aiDiv.className = 'aria-msg aria-msg-ai';
-            aiDiv.innerHTML = \`<div class="aria-avatar">◈</div><div class="aria-bubble"><div class="aria-sender">ARIA</div><div class="aria-text">\${reply}</div></div>\`;
-            chatDiv.appendChild(aiDiv);
-            chatDiv.scrollTop = chatDiv.scrollHeight;
-          } catch(e) {
-            console.error('ARIA error:', e);
-          }
-        };
-
-        window.quickAsk = function(msg) {
-          document.getElementById('aria-input').value = msg;
-          (window as any).sendToAria?.();
-        };
-
-        // Setup button click handler
-        function setupButtonHandler() {
-          const btn = document.getElementById('enter-btn');
-          if (btn) {
-            btn.addEventListener('click', function(e) {
-              e.preventDefault();
-              if (typeof window.initializeSystem === 'function') {
-                window.initializeSystem();
-              }
-            });
-          }
-        }
-
-        // Try to setup immediately
-        setupButtonHandler();
-        
-        // Also try after a small delay
-        setTimeout(setupButtonHandler, 100);
-        setTimeout(setupButtonHandler, 500);
-
-        updateSystemClock();
-      `}} />
+      
     </>
   );
 }
