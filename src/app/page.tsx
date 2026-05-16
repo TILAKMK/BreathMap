@@ -341,7 +341,7 @@ export default function Home() {
             <div className="pill"><span className="pill-dot"></span>AI CORE ONLINE</div>
             <div className="pill"><span className="pill-dot amber"></span>AWAITING LOCATION</div>
           </div>
-          <button className="enter-btn" onClick={() => (window as any).initializeSystem?.()}>
+          <button id="enter-btn" style={{position: 'relative', display: 'inline-flex', alignItems: 'center', gap: '16px', padding: '18px 48px', background: 'transparent', border: '1px solid var(--teal)', borderRadius: '4px', color: 'var(--teal)', fontFamily: 'var(--font-display)', fontSize: '0.85rem', fontWeight: 700, letterSpacing: '6px', cursor: 'none', transition: 'all 0.3s', marginBottom: '20px'}} onClick={() => (window as any).initializeSystem?.()}>
             <span>INITIALIZE SYSTEM</span>
             <span>→</span>
             <div className="btn-scan"></div>
@@ -603,14 +603,74 @@ export default function Home() {
           setTimeout(updateSystemClock, 1000);
         }
 
-        window.initializeSystem = function() {
-          document.getElementById('landing-page').classList.add('hidden');
-          document.getElementById('dashboard').classList.remove('hidden');
+        async function initializeSystem() {
+          // 1. Hide landing page, show dashboard
+          const landing = document.getElementById('landing-page');
+          const dashboard = document.getElementById('dashboard');
+          
+          if (!landing || !dashboard) {
+            console.error('landing or dashboard element not found');
+            return;
+          }
+
+          landing.style.display = 'none';
+          dashboard.style.display = 'block';
+          dashboard.classList.remove('hidden');
+          dashboard.classList.add('fade-in');
+
+          // 2. Request geolocation
+          try {
+            const pos = await new Promise((resolve, reject) => {
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                timeout: 8000,
+                enableHighAccuracy: true
+              });
+            });
+            window.appState.lat = pos.coords.latitude;
+            window.appState.lon = pos.coords.longitude;
+            document.getElementById('map-coords').textContent = \`COORDINATES: \${window.appState.lat.toFixed(2)}°, \${window.appState.lon.toFixed(2)}°\`;
+          } catch (e) {
+            // Fallback to Mysuru
+            window.appState.lat = 12.2958;
+            window.appState.lon = 76.6394;
+            document.getElementById('map-coords').textContent = 'COORDINATES: 12.30°, 76.64°';
+            console.log('Geolocation denied, using fallback');
+          }
+
+          // 3. Request microphone
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioCtx.createAnalyser();
+            const source = audioCtx.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 256;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            function animate() {
+              analyser.getByteFrequencyData(dataArray);
+              drawWaveform('waveform-canvas', window.appState.aqi);
+              requestAnimationFrame(animate);
+            }
+            animate();
+          } catch (e) {
+            console.log('Mic denied, using mock waveform');
+          }
+
+          // 4. Fetch data and init everything
+          await fetchEnvironmentalData();
           updateSystemClock();
-          requestGeolocation();
-          requestMicrophoneAccess();
+          drawRadar('radar-canvas', '#00e5ff');
+          drawRadar('big-radar', '#00e5ff');
+          drawChart('chart-aqi', [window.appState.aqi * 0.8, window.appState.aqi, window.appState.aqi * 0.9], '#00e5ff');
+          drawChart('chart-co2', [420, 435, 430, 445], '#39ff14');
+          drawChart('chart-noise', [55, 65, 60, 70], '#ff9100');
+          drawChart('forecast-canvas', [window.appState.aqi * 0.95, window.appState.aqi, window.appState.aqi * 1.05], '#00e5ff');
+
+          // 5. Start refresh loop
           setInterval(fetchEnvironmentalData, 60000);
-        };
+        }
+        
+        window.initializeSystem = initializeSystem;
 
         const GEMINI_API_KEY = 'AIzaSyAy75y0nL4Cme9W3gRWZT9KKeDZeTkWlDA';
         const GEMINI_URL = \`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=\${GEMINI_API_KEY}\`;
