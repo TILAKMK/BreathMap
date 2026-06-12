@@ -1,6 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import AuthButton from '@/components/AuthButton';
+import '@/global';
 
 export default function Home() {
   
