@@ -4,10 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "dev:server": "tsx watch server/index.ts",
     "build": "next build",
     "start": "next start",
-    "start:server": "node server/dist/index.js",
     "lint": "eslint"
   },
   "dependencies": {
