@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Providers from "@/components/Providers";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,12 +23,14 @@ export default function RootLayout({
         <script src="https://cdn.jsdelivr.net/npm/recharts@2.10.0/dist/Recharts.js"></script>
       </head>
       <body>
-        <canvas id="bg-canvas"></canvas>
-        <div id="cursor"></div>
-        <div id="cursor-ring"></div>
-        <div className="app-wrapper">
-          {children}
-        </div>
+        <Providers>
+          <canvas id="bg-canvas"></canvas>
+          <div id="cursor"></div>
+          <div id="cursor-ring"></div>
+          <div className="app-wrapper">
+            {children}
+          </div>
+        </Providers>
       </body>
     </html>
   );

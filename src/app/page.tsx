@@ -1,5 +1,6 @@
 'use client';
 import { useEffect } from 'react';
+import AuthButton from '@/components/AuthButton';
 
 export default function Home() {
   
@@ -117,7 +118,67 @@ export default function Home() {
             window.appState.wind = 5 + Math.random() * 20;
           }
           updateUIWithData();
+          if (typeof (window as any).evaluateAlerts === 'function') {
+            (window as any).evaluateAlerts(window.appState);
+          }
         }
+
+        const lastEmailSent: any = { warning: 0, danger: 0, critical: 0 };
+        const EMAIL_COOLDOWN: any = { warning: 3600000, danger: 1800000, critical: 900000 };
+
+        async function sendAlertEmail(level: string, alerts: any[], data: any) {
+          try {
+            const sessionRes = await fetch('/api/auth/session');
+            if (!sessionRes.ok) return;
+            const session = await sessionRes.json();
+            if (!session?.user?.email) return;
+
+            const now = Date.now();
+            const cooldown = EMAIL_COOLDOWN[level] || EMAIL_COOLDOWN.warning;
+            if (now - lastEmailSent[level] < cooldown) {
+              console.log(`Email cooldown active for level: ${level}`);
+              return;
+            }
+            lastEmailSent[level] = now;
+
+            await fetch('/api/send-alert', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                email: session.user.email,
+                name: session.user.name,
+                city: data.city || 'Unknown',
+                level,
+                aqi: data.aqi,
+                pm25: data.pm25,
+                co2: data.co2 || 400,
+                o2: data.o2 || 21,
+                alerts,
+                timestamp: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', hour12: true })
+              })
+            });
+            console.log(`✅ Alert email sent to ${session.user.email}`);
+          } catch(e) {
+            console.error('Email send failed:', e);
+          }
+        }
+
+        (window as any).evaluateAlerts = function(data: any) {
+          let level = 'good';
+          const alerts = [];
+          if (data.aqi > 150) { level = 'critical'; alerts.push({ metric: 'AQI', value: data.aqi, msg: 'Very Unhealthy' }); }
+          else if (data.aqi > 100) { level = 'danger'; alerts.push({ metric: 'AQI', value: data.aqi, msg: 'Unhealthy' }); }
+          else if (data.aqi > 50) { level = 'warning'; alerts.push({ metric: 'AQI', value: data.aqi, msg: 'Moderate' }); }
+          
+          if (level !== 'good') {
+            sendAlertEmail(level, alerts, data);
+            if (typeof (window as any).showToastAlert === 'function') (window as any).showToastAlert(level, alerts, data.city);
+            if (typeof (window as any).startAlarm === 'function') (window as any).startAlarm(level);
+          } else {
+            if (typeof (window as any).dismissToast === 'function') (window as any).dismissToast();
+            if (typeof (window as any).stopAlarm === 'function') (window as any).stopAlarm();
+          }
+        };
 
         function updateUIWithData() {
           document.getElementById('nav-city').textContent = window.appState.city;
@@ -669,6 +730,13 @@ export default function Home() {
             <div className="btn-scan"></div>
           </button>
           <div className="landing-disclaimer">Requires location access for accurate atmospheric readings</div>
+          <div className="landing-login-notice">
+            <span className="lln-icon">🛡️</span>
+            <span className="lln-text">
+              <strong>CRITICAL ALERTS:</strong> You must Login with Google inside the Command Center
+              to receive automated Gmail warnings when air quality drops to dangerous levels.
+            </span>
+          </div>
         </div>
         <div className="landing-bottom">
           <span>DATA SOURCE: SENTINEL-5P + OPENWEATHERMAP</span>
@@ -686,7 +754,10 @@ export default function Home() {
             <div className="nav-divider"></div>
             <div className="nav-stat"><span className="nav-label">LAST SYNC</span><span className="nav-value" id="nav-time">--:--:--</span></div>
           </div>
-          <div className="nav-right"><div className="nav-aqi-badge"><span className="nav-label">AQI</span><span className="nav-aqi-val" id="nav-aqi">--</span></div></div>
+          <div className="nav-right">
+            <AuthButton />
+            <div className="nav-aqi-badge"><span className="nav-label">AQI</span><span className="nav-aqi-val" id="nav-aqi">--</span></div>
+          </div>
         </nav>
 
         <section className="s-map">
