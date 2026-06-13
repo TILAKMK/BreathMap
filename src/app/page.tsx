@@ -34,7 +34,7 @@ export default function Home() {
         })();
       
 
-        window.appState = {aqi: 0, pm25: 0, temp: 0, humidity: 0, wind: 0, o2: 100, city: 'Detecting...', country: 'India', lat: 12.2958, lon: 76.6394, timestamp: new Date()};
+        (window as any).appState = {aqi: 0, pm25: 0, temp: 0, humidity: 0, wind: 0, o2: 100, city: 'Detecting...', country: 'India', lat: 12.2958, lon: 76.6394, timestamp: new Date()};
         
         // CANVAS RENDERING FUNCTIONS
         function drawRadar(canvasId, color = '#00e5ff') {
