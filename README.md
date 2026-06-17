@@ -4,7 +4,7 @@
 
 A next-generation, real-time environmental intelligence platform that visualizes live air quality, CO₂ density, oxygen levels, and breath safety zones around you with a cinematic, futuristic UI.
 
-## Features 
+## Features
 
 ### 🎯 Core Capabilities
 
