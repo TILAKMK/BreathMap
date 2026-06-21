@@ -5,7 +5,7 @@
 A next-generation, real-time environmental intelligence platform that visualizes live air quality, CO₂ density, oxygen levels, and breath safety zones around you with a cinematic, futuristic UI.
 
 ## Features
-
+ 
 ### 🎯 Core Capabilities
 
 - **Live Breathability Heatmap**: Real-time animated pollution overlays with dynamic glowing gradients
