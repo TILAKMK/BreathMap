@@ -20,7 +20,7 @@ A next-generation, real-time environmental intelligence platform that visualizes
 - **Green Route Navigation**: Find cleaner walking routes
 - **City Ranking System**: See top breathable zones nearby
 - **Air Danger Alerts**: Cinematic popup warnings for hazardous conditions
-
+ 
 ### 🎨 UI/UX Features
 
 - **Futuristic Glassmorphism Design**: Premium transparent glass cards with neon accents
