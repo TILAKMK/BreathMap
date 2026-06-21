@@ -22,7 +22,7 @@ A next-generation, real-time environmental intelligence platform that visualizes
 - **Air Danger Alerts**: Cinematic popup warnings for hazardous conditions
  
 ### 🎨 UI/UX Features
-
+ 
 - **Futuristic Glassmorphism Design**: Premium transparent glass cards with neon accents
 - **Animated Particle System**: Air molecules moving based on pollution levels
 - **3D Earth Visualization**: Rotating atmospheric Earth with glow effects
