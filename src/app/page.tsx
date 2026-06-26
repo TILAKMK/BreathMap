@@ -1,6 +1,11 @@
 'use client';
 import { useEffect } from 'react';
 import AuthButton from '@/components/AuthButton';
+import dynamic from 'next/dynamic';
+
+const FullscreenLiveMap = dynamic(() => import('@/components/FullscreenLiveMap'), {
+  ssr: false,
+});
 
 export default function Home() {
   
@@ -313,24 +318,10 @@ export default function Home() {
           dashboard.classList.remove('hidden');
           dashboard.classList.add('fade-in');
 
-          // 2. Request geolocation
-          try {
-            const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
-              navigator.geolocation.getCurrentPosition(resolve, reject, {
-                timeout: 8000,
-                enableHighAccuracy: true
-              });
-            });
-            window.appState.lat = pos.coords.latitude;
-            window.appState.lon = pos.coords.longitude;
-            setElText('map-coords', `COORDINATES: ${window.appState.lat.toFixed(2)}°, ${window.appState.lon.toFixed(2)}°`);
-          } catch (e) {
-            // Fallback to Mysuru
-            window.appState.lat = 12.2958;
-            window.appState.lon = 76.6394;
-            setElText('map-coords', 'COORDINATES: 12.30°, 76.64°');
-            console.log('Geolocation denied, using fallback');
-          }
+          // 2. Geolocation coordinates (already retrieved or watched by map component)
+          const lat = window.appState.lat || 12.2958;
+          const lon = window.appState.lon || 76.6394;
+          setElText('map-coords', `COORDINATES: ${lat.toFixed(4)}°, ${lon.toFixed(4)}°`);
 
           // 3. Request microphone
           try {
@@ -361,11 +352,16 @@ export default function Home() {
           drawChart('chart-noise', [55, 65, 60, 70], '#ff9100');
           drawChart('forecast-canvas', [window.appState.aqi * 0.95, window.appState.aqi, window.appState.aqi * 1.05], '#00e5ff');
 
+          // Notify map that display is shown so it can recalculate Leaflet bounds
+          window.dispatchEvent(new Event('system-initialized'));
+
           // 5. Start refresh loop
           setInterval(fetchEnvironmentalData, 60000);
         }
         
         window.initializeSystem = initializeSystem;
+        (window as any).fetchEnvironmentalData = fetchEnvironmentalData;
+        (window as any).updateUIWithData = updateUIWithData;
 
         window.sendToAria = async function() {
           const input = document.getElementById('aria-input') as HTMLInputElement;
@@ -549,6 +545,21 @@ export default function Home() {
 
         .s-map { position: relative; height: 100vh; padding: 0; }
         .map-container { width: 100%; height: 100%; position: absolute; inset: 0; background: linear-gradient(135deg, #010c14 0%, #041220 100%); }
+        .map-interactive-container {
+          position: absolute;
+          left: 368px;
+          right: 368px;
+          top: 80px;
+          bottom: 68px;
+          z-index: 5;
+        }
+        @media (max-width: 1024px) {
+          .map-interactive-container {
+            left: 24px;
+            right: 24px;
+            z-index: 1;
+          }
+        }
         .map-panel {
           position: absolute; top: 80px; width: 300px; z-index: 10;
         }
@@ -778,7 +789,10 @@ export default function Home() {
 
         <section className="s-map">
           <div style={{fontFamily: 'var(--font-mono)', fontSize: '0.6rem', letterSpacing: '5px', color: 'var(--text-dim)', marginBottom: '20px', position: 'absolute', top: '80px', left: '60px', zIndex: 10}}>01 / ATMOSPHERIC FIELD</div>
-          <div id="map" className="map-container"></div>
+          <div className="map-background" style={{ width: '100%', height: '100%', position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #010c14 0%, #041220 100%)', zIndex: 0 }}></div>
+          <div className="map-interactive-container">
+            <FullscreenLiveMap />
+          </div>
           <div className="map-panel map-panel-left glass" style={{position: 'absolute', top: '80px', left: '24px', width: '320px', maxHeight: '60vh', overflowY: 'auto', zIndex: 10}}>
             <div className="panel-header"><span className="panel-dot"></span>ENVIRONMENT MATRIX</div>
             <div className="env-metrics">
