@@ -1,11 +1,18 @@
 'use client';
 import { useEffect } from 'react';
 import AuthButton from '@/components/AuthButton';
-import '@/global';
 
 export default function Home() {
   
   useEffect(() => {
+        const setElText = (id: string, text: string | number) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = String(text);
+        };
+        const setElWidth = (id: string, percent: number | string) => {
+          const el = document.getElementById(id);
+          if (el) el.style.width = typeof percent === 'number' ? percent + '%' : percent;
+        };
 
         (function() {
           const cursor = document.getElementById('cursor');
@@ -37,10 +44,11 @@ export default function Home() {
         (window as any).appState = {aqi: 0, pm25: 0, temp: 0, humidity: 0, wind: 0, o2: 100, city: 'Detecting...', country: 'India', lat: 12.2958, lon: 76.6394, timestamp: new Date()};
         
         // CANVAS RENDERING FUNCTIONS
-        function drawRadar(canvasId, color = '#00e5ff') {
-          const canvas = document.getElementById(canvasId);
+        function drawRadar(canvasId: string, color = '#00e5ff') {
+          const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
           if (!canvas) return;
           const ctx = canvas.getContext('2d');
+          if (!ctx) return;
           const w = canvas.width, h = canvas.height, cx = w/2, cy = h/2;
           ctx.clearRect(0, 0, w, h);
           ctx.strokeStyle = color + '40'; ctx.lineWidth = 1;
@@ -59,10 +67,11 @@ export default function Home() {
           ctx.fill();
         }
 
-        function drawWaveform(canvasId, aqi = 50) {
-          const canvas = document.getElementById(canvasId);
+        function drawWaveform(canvasId: string, aqi = 50) {
+          const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
           if (!canvas) return;
           const ctx = canvas.getContext('2d');
+          if (!ctx) return;
           const w = canvas.width, h = canvas.height;
           ctx.clearRect(0, 0, w, h);
           const color = aqi > 150 ? '#ff1744' : aqi > 100 ? '#ff9100' : aqi > 50 ? '#00e5ff' : '#39ff14';
@@ -77,10 +86,11 @@ export default function Home() {
           ctx.stroke();
         }
 
-        function drawChart(canvasId, data = [], color = '#00e5ff') {
-          const canvas = document.getElementById(canvasId);
+        function drawChart(canvasId: string, data: number[] = [], color = '#00e5ff') {
+          const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
           if (!canvas) return;
           const ctx = canvas.getContext('2d');
+          if (!ctx) return;
           const w = canvas.width, h = canvas.height;
           ctx.clearRect(0, 0, w, h);
           if (data.length === 0) return;
@@ -182,34 +192,34 @@ export default function Home() {
         };
 
         function updateUIWithData() {
-          document.getElementById('nav-city').textContent = window.appState.city;
-          document.getElementById('nav-aqi').textContent = Math.round(window.appState.aqi);
-          document.getElementById('m-aqi').textContent = Math.round(window.appState.aqi);
-          document.getElementById('m-pm25').textContent = Math.round(window.appState.pm25);
-          document.getElementById('m-temp').textContent = Math.round(window.appState.temp);
-          document.getElementById('m-humidity').textContent = Math.round(window.appState.humidity);
-          document.getElementById('m-wind').textContent = Math.round(window.appState.wind);
-          document.getElementById('m-o2').textContent = '98';
+          setElText('nav-city', window.appState.city);
+          setElText('nav-aqi', Math.round(window.appState.aqi));
+          setElText('m-aqi', Math.round(window.appState.aqi));
+          setElText('m-pm25', Math.round(window.appState.pm25));
+          setElText('m-temp', Math.round(window.appState.temp));
+          setElText('m-humidity', Math.round(window.appState.humidity));
+          setElText('m-wind', Math.round(window.appState.wind));
+          setElText('m-o2', '98');
           
-          document.getElementById('tc-v-aqi').textContent = Math.round(window.appState.aqi);
-          document.getElementById('tc-v-pm25').textContent = Math.round(window.appState.pm25);
-          document.getElementById('tc-v-humidity').textContent = Math.round(window.appState.humidity);
-          document.getElementById('tc-v-temp').textContent = Math.round(window.appState.temp);
-          document.getElementById('tc-v-wind').textContent = Math.round(window.appState.wind);
-          document.getElementById('tc-v-o2').textContent = '98';
+          setElText('tc-v-aqi', Math.round(window.appState.aqi));
+          setElText('tc-v-pm25', Math.round(window.appState.pm25));
+          setElText('tc-v-humidity', Math.round(window.appState.humidity));
+          setElText('tc-v-temp', Math.round(window.appState.temp));
+          setElText('tc-v-wind', Math.round(window.appState.wind));
+          setElText('tc-v-o2', '98');
           
-          document.getElementById('bar-aqi').style.width = Math.min(100, (window.appState.aqi/300)*100) + '%';
-          document.getElementById('bar-pm25').style.width = Math.min(100, (window.appState.pm25/100)*100) + '%';
-          document.getElementById('bar-temp').style.width = Math.min(100, (window.appState.temp/50)*100) + '%';
-          document.getElementById('bar-humidity').style.width = window.appState.humidity + '%';
-          document.getElementById('bar-wind').style.width = Math.min(100, (window.appState.wind/40)*100) + '%';
-          document.getElementById('bar-o2').style.width = '98%';
+          setElWidth('bar-aqi', Math.min(100, (window.appState.aqi/300)*100) + '%');
+          setElWidth('bar-pm25', Math.min(100, (window.appState.pm25/100)*100) + '%');
+          setElWidth('bar-temp', Math.min(100, (window.appState.temp/50)*100) + '%');
+          setElWidth('bar-humidity', window.appState.humidity + '%');
+          setElWidth('bar-wind', Math.min(100, (window.appState.wind/40)*100) + '%');
+          setElWidth('bar-o2', '98%');
           
           // Animate bar charts in telemetry cards
-          const animateBarChart = (containerId, percent) => {
+          const animateBarChart = (containerId: string, percent: number) => {
             const container = document.getElementById(containerId);
             if (container) {
-              const items = container.querySelectorAll('.tc-bar-item');
+              const items = container.querySelectorAll('.tc-bar-item') as NodeListOf<HTMLElement>;
               items.forEach((item, idx) => {
                 const h = Math.random() * 100;
                 item.style.height = h + '%';
@@ -232,9 +242,9 @@ export default function Home() {
           drawChart('forecast-canvas', [window.appState.aqi * 0.95, window.appState.aqi, window.appState.aqi * 1.05, window.appState.aqi * 0.98], '#00e5ff');
           
           const forecastAqi = Math.round(window.appState.aqi * 0.98);
-          document.getElementById('fd-forecast').textContent = forecastAqi;
-          document.getElementById('rs-freq').textContent = (1.0 + Math.random()).toFixed(1);
-          document.getElementById('rs-amp').textContent = (-45 - Math.random() * 10).toFixed(0);
+          setElText('fd-forecast', forecastAqi);
+          setElText('rs-freq', (1.0 + Math.random()).toFixed(1));
+          setElText('rs-amp', (-45 - Math.random() * 10).toFixed(0));
         }
 
         // GEOLOCATION
@@ -244,7 +254,7 @@ export default function Home() {
               (pos) => {
                 window.appState.lat = pos.coords.latitude;
                 window.appState.lon = pos.coords.longitude;
-                document.getElementById('map-coords').textContent = `COORDINATES: ${window.appState.lat.toFixed(2)}°, ${window.appState.lon.toFixed(2)}°`;
+                setElText('map-coords', `COORDINATES: ${window.appState.lat.toFixed(2)}°, ${window.appState.lon.toFixed(2)}°`);
                 fetchEnvironmentalData();
               },
               (err) => {
@@ -305,7 +315,7 @@ export default function Home() {
 
           // 2. Request geolocation
           try {
-            const pos = await new Promise((resolve, reject) => {
+            const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
               navigator.geolocation.getCurrentPosition(resolve, reject, {
                 timeout: 8000,
                 enableHighAccuracy: true
@@ -313,12 +323,12 @@ export default function Home() {
             });
             window.appState.lat = pos.coords.latitude;
             window.appState.lon = pos.coords.longitude;
-            document.getElementById('map-coords').textContent = `COORDINATES: ${window.appState.lat.toFixed(2)}°, ${window.appState.lon.toFixed(2)}°`;
+            setElText('map-coords', `COORDINATES: ${window.appState.lat.toFixed(2)}°, ${window.appState.lon.toFixed(2)}°`);
           } catch (e) {
             // Fallback to Mysuru
             window.appState.lat = 12.2958;
             window.appState.lon = 76.6394;
-            document.getElementById('map-coords').textContent = 'COORDINATES: 12.30°, 76.64°';
+            setElText('map-coords', 'COORDINATES: 12.30°, 76.64°');
             console.log('Geolocation denied, using fallback');
           }
 
@@ -358,10 +368,12 @@ export default function Home() {
         window.initializeSystem = initializeSystem;
 
         window.sendToAria = async function() {
-          const input = document.getElementById('aria-input');
+          const input = document.getElementById('aria-input') as HTMLInputElement;
+          if (!input) return;
           const msg = input.value.trim();
           if (!msg) return;
           const chatDiv = document.getElementById('aria-chat');
+          if (!chatDiv) return;
           const userDiv = document.createElement('div');
           userDiv.className = 'aria-msg aria-msg-user';
           userDiv.innerHTML = `<div class="aria-bubble user-bubble"><div class="aria-text">${msg}</div></div><div class="aria-avatar user-av">U</div>`;
@@ -382,9 +394,12 @@ export default function Home() {
           }
         };
 
-        window.quickAsk = function(msg) {
-          document.getElementById('aria-input').value = msg;
-          (window as any).sendToAria?.();
+        window.quickAsk = function(msg: string) {
+          const input = document.getElementById('aria-input') as HTMLInputElement;
+          if (input) {
+            input.value = msg;
+            window.sendToAria?.();
+          }
         };
 
         // Setup button click handler
