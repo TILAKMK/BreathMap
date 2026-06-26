@@ -16,6 +16,8 @@ declare global {
   interface Window {
     appState: AppState;
     initializeSystem: () => void;
+    fetchEnvironmentalData: () => Promise<void>;
+    updateUIWithData: () => void;
     sendToAria: () => void;
     quickAsk: (msg: string) => void;
     webkitAudioContext: typeof AudioContext;
